@@ -8,10 +8,10 @@ const { getDatabaseUri } = require("./config");
 
 const client = new MongoClient(getDatabaseUri());
 
-let db;
-
 /** Connect to MongoDB (only once) and return the db instance */
 // the connectDB function solution gotten from chatGPT.  mongo docs show different
+let db;
+
 async function connectDB() {
   if (!db) {
     try {
