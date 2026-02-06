@@ -50,6 +50,9 @@ router.get('/:id', async function (req, res) {
 router.patch('/:id', async function (req, res) {
   const id = req.params.id;
   const updatedFields = req.body; // { title: "Updated title", completed: true }
+  
+  delete updatedFields._id; // Ensure _id is not included in the update
+  delete updatedFields.dateAdded; // Ensure dateAdded is not included in the update
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
