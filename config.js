@@ -34,6 +34,8 @@ console.log("NODE_ENV:".yellow, process.env.NODE_ENV);
 console.log("process.env".yellow, process.env);
 
 module.exports = {
+  SECRET_KEY,
   PORT,
   getDatabaseUri,
+  BCRYPT_WORK_FACTOR
 };

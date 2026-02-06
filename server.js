@@ -8,10 +8,9 @@ const { PORT } = require("./config");
 require("colors");
 
 app.listen(PORT, function () {
-  // the url terniary is specific to render.com
   const url =
-    process.env.NODE_ENV === "production"
-      ? null
-      : "http://localhost";
+    process.env.NODE_ENV === 'production'
+      ? process.env.VERCEL_PROJECT_PRODUCTION_URL
+      : 'http://localhost';
   console.log(`=> Started on ${url}:${PORT}\n`.brightCyan);
 });
