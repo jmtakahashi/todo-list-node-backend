@@ -3,7 +3,7 @@
 /** separate our server startup logic for testing purposes */
 
 const app = require("./app");
-const { PORT } = require("./config");
+const { PORT } = require("./config/config");
 
 require("colors");
 

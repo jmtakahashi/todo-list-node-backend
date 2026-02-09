@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 
-const { NotFoundError } = require("./expressError");
+const { NotFoundError } = require("./utils/expressError");
 
 const authRoutes = require('./routes/auth')
 const userRoutes = require('./routes/users')
