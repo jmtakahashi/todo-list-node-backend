@@ -4,7 +4,7 @@ const { SECRET_KEY, BCRYPT_WORK_FACTOR } = require('../config/config');
 const { ObjectId } = require('mongodb');
 const { registerUser } = require('../controllers/authController');
 
-let User = function (username, password, createdAt) {
+function User (username, password, createdAt) {
   this.username = username;
   this.password = password;
   this.createdAt = createdAt;
@@ -53,23 +53,23 @@ User.prototype.updateUser = async function(id, updatedFields) {
   } catch (err) {
     console.error('❌ Mongo error:', err);
     return res.status(500).json({ error: 'Database operation failed' });
-  }  }
-
-  User.prototype.deleteUser = async function(id) {
-    try {
-      const db = await connectDB(); // ✅ make sure connection is ready
-      const todos = db.collection('items');
-      const response = await todos.deleteOne({ _id: new ObjectId(id) });
-      if (response.deletedCount === 0) {
-        return res.status(404).json({ error: 'Todo not found' });
-      }
-      return res.status(200).json({ message: 'Todo deleted successfully' });
-    } catch (err) {
-      console.error('❌ Mongo error:', err);
-      return res.status(500).json({ error: 'Database operation failed' });
-    }
   }
+}
 
+User.prototype.deleteUser = async function(id) {
+  try {
+    const db = await connectDB(); // ✅ make sure connection is ready
+    const todos = db.collection('items');
+    const response = await todos.deleteOne({ _id: new ObjectId(id) });
+    if (response.deletedCount === 0) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+    return res.status(200).json({ message: 'Todo deleted successfully' });
+  } catch (err) {
+    console.error('❌ Mongo error:', err);
+    return res.status(500).json({ error: 'Database operation failed' });
+  }
+}
 
 User.prototype.hashPassword = async function() {
   const salt = await bcrypt.genSalt(BCRYPT_WORK_FACTOR);
