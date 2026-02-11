@@ -1,9 +1,10 @@
 const express = require("express");
-const connectDB = require("../config/db");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { SECRET_KEY } = require("../config/config");
+const controller = require("../controllers/usersController");
 
-const router = new express.Router();
+const router = express.Router();
+
+router.get('/:id', controller.getUserById);
+router.patch('/:id', controller.updateUser);
+router.delete('/:id', controller.deleteUser);
 
 module.exports = router;

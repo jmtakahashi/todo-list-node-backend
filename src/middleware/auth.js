@@ -1,4 +1,4 @@
-const loggedInOnly = (req, res, next) => {
+const requireLogin = (req, res, next) => {
   try {
     if (!res.locals.user) {
       return res.status(401).json({ error: { message: "Unauthorized", status: 401 } });
@@ -10,5 +10,5 @@ const loggedInOnly = (req, res, next) => {
 };
 
 module.exports = {
-  loggedInOnly,
+  requireLogin,
 };

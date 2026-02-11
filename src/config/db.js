@@ -1,5 +1,3 @@
-"use strict";
-
 /** Mongodb setup for todo app. */
 /** - this file is required in our models files or routes */
 

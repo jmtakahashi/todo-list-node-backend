@@ -1,50 +1,43 @@
-const connectDB = require('../config/db');
-const { ObjectId } = require('mongodb');
+const Todo = require('../models/Todo');
 
-const getAllTodos = async function (req, res) {
+// Controller functions that call the corresponding model functions and handle the HTTP responses
+// call next to pass control to the next middleware (e.g., error handling) if needed
+
+// return res.status(500).json({ error: 'Database operation failed' });
+
+/**
+ * Controllers:
+	•	Decide how errors map to HTTP
+	•	Decide status codes
+	•	Decide response shape
+   knows nothing about db
+ */
+
+const getAllTodos = async (req, res, next) => {
   try {
-    const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const allTodos = await todos.find().toArray();
-    return res.status(200).json(allTodos);
+    const data = await Todo.getAllTodos();
+    return res.status(200).json(data);
   } catch (error) {
-    console.error('❌ Mongo error:', err);
-    return res.status(500).json({ error: 'Database operation failed' });
+    next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
-const addTodo = async function (req, res) {
-  const newTodo = req.body; // { title: "My new todo", completed: false }
+const addTodo = async (req, res, next) => {
+  const newTodo = {
+    task: req.body.task,
+    completed: req.body.completed || false, // default to false if not provided
+    dateAdded: req.body.dateAdded || new Date(), // default to current date if not provided
+  };
 
   try {
-    const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.insertOne(newTodo);
-    return res.status(200).json(response.insertedId); // send back the id of the new todo
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    return res.status(500).json({ error: 'Database operation failed' });
+    const data = await Todo.createTodo(newTodo);
+    return res.status(200).json(data); // successful response will be an object with the new todo including its id as set by Mongo
+  } catch (error) {
+    next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
-const getTodoById = async function (req, res) {
-  const id = req.params.id;
-
-  try {
-    const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const todo = await todos.findOne({ _id: new ObjectId(id) });
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo not found' });
-    }
-    return res.status(200).json(todo);
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    return res.status(500).json({ error: 'Database operation failed' });
-  }
-};
-
-const updateTodo = async function (req, res) {
+const updateTodo = async (req, res, next) => {
   const id = req.params.id;
   const updatedFields = req.body; // { title: "Updated title", completed: true }
 
@@ -52,44 +45,28 @@ const updateTodo = async function (req, res) {
   delete updatedFields.dateAdded; // Ensure dateAdded is not included in the update
 
   try {
-    const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updatedFields },
-    );
-    if (response.matchedCount === 0) {
-      return res.status(404).json({ error: 'Todo not found' });
-    } else {
-      return res.status(200).json({ message: 'Todo updated successfully' });
-    }
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    return res.status(500).json({ error: 'Database operation failed' });
+    const data = await Todo.updateTodo(id, updatedFields);
+    return res.status(200).json(data); // data will contain a message about the update result (e.g., not found, no changes, or success)
+  } catch (error) {
+    next(error); // Pass the error to the next middleware (e.g., error handler)
   }
+
 };
 
-const deleteTodo = async function (req, res) {
+const deleteTodo = async (req, res, next) => {
   const id = req.params.id;
 
   try {
-    const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.deleteOne({ _id: new ObjectId(id) });
-    if (response.deletedCount === 0) {
-      return res.status(404).json({ error: 'Todo not found' });
-    }
-    return res.status(200).json({ message: 'Todo deleted successfully' });
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    return res.status(500).json({ error: 'Database operation failed' });
+    const data = await Todo.deleteTodo(id);
+    return res.status(200).json(data); // data will contain a message about the delete result (e.g., not found or success)
+  } catch (error) {
+    next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
 module.exports = {
   getAllTodos,
   addTodo,
-  getTodoById,
   updateTodo,
   deleteTodo,
 };
