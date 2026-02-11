@@ -18,8 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // router routes
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
+// app.use("/auth", authRoutes);
+// app.use("/users", userRoutes);
 app.use("/todos", todoRoutes);
 
 // so we don't get the "not found" error in our console for the favicon
