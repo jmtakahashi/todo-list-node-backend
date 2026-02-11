@@ -4,8 +4,8 @@ const helmet = require("helmet");
 
 const { NotFoundError } = require("./utils/expressError");
 
-const authRoutes = require('./routes/auth')
-const userRoutes = require('./routes/users')
+// const authRoutes = require('./routes/auth')
+// const userRoutes = require('./routes/users')
 const todoRoutes = require('./routes/todos')
 
 const app = express();
