@@ -46,7 +46,12 @@ const updateTodo = async (req, res, next) => {
 
   try {
     const data = await Todo.updateTodo(id, updatedFields);
-    return res.status(200).json(data); // data will contain a message about the update result (e.g., not found, no changes, or success)
+    // data will contain a message about the update result (e.g., not found, no changes, or success)
+    // the controller decides what status to return based on the db's returned value
+    if (data.message === 'Todo not found') {
+      return res.status(404).json(data);
+    }
+    return res.status(200).json(data);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
@@ -58,7 +63,12 @@ const deleteTodo = async (req, res, next) => {
 
   try {
     const data = await Todo.deleteTodo(id);
-    return res.status(200).json(data); // data will contain a message about the delete result (e.g., not found or success)
+    // data will contain a message about the delete result (e.g., not found or success)
+    // the controller decides what status to return based on the db's returned value
+    if (data.message === 'Todo not found') {
+      return res.status(404).json(data);
+    }
+    return res.status(200).json(data);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }

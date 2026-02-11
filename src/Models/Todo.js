@@ -103,6 +103,7 @@ Todo.updateTodo = async function (id, updatedFields) {
     );
     // mongo will return a matched count and a modified count
     // we can use these to determine if the update was successful or if the todo was not found
+    // either way, we return a message that the controller can send back to the client (instead of sending back the raw mongo response)
     if (response.matchedCount === 0) {
       return { message: 'Todo not found' };
     } else {
