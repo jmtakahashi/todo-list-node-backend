@@ -1,10 +1,10 @@
-// const express = require("express");
-// const controller = require("../controllers/usersController");
+const express = require("express");
+const controller = require("../controllers/usersController");
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.get('/:id', controller.getUserById);
-// router.patch('/:id', controller.updateUser);
-// router.delete('/:id', controller.deleteUser);
+router.get('/:id', controller.getUserById);
+router.patch('/:id', controller.updateUser);
+router.delete('/:id', controller.deleteUser);
 
-// module.exports = router;
+module.exports = router;
