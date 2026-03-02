@@ -1,14 +1,17 @@
-const requireLogin = (req, res, next) => {
+const jwt = require('jsonwebtoken');
+const { SECRET_KEY } = require('../config/config');
+
+const authenticateJWT = (req, res, next) => {
   try {
-    if (!res.locals.user) {
-      return res.status(401).json({ error: { message: "Unauthorized", status: 401 } });
-    }
+    const token = req.headers.authorization;
+    const payload = jwt.verify(token, SECRET_KEY);
+    req.user = payload; // Attach the decoded payload to the request object for use in subsequent middleware or route handlers
     return next();
   } catch (err) {
-    return next(err);
+    return next();
   }
 };
 
 module.exports = {
-  requireLogin,
+  authenticateJWT,
 };

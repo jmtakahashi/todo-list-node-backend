@@ -1,10 +1,5 @@
 const Todo = require('../models/Todo');
 
-// Controller functions that call the corresponding model functions and handle the HTTP responses
-// call next to pass control to the next middleware (e.g., error handling) if needed
-
-// return res.status(500).json({ error: 'Database operation failed' });
-
 /**
  Controllers:
 	•	Decide how errors map to HTTP
@@ -13,9 +8,15 @@ const Todo = require('../models/Todo');
    knows nothing about db
  */
 
+// req.user = {id: _id} is available here if we need to use it for auth/permissions
+
 const getAllTodos = async (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
   try {
-    const data = await Todo.getAllTodos();
+    const data = await Todo.getAllTodos(req.user.id); // pass the authenticated user's id to get only their todos
     return res.status(200).json(data);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
@@ -23,26 +24,36 @@ const getAllTodos = async (req, res, next) => {
 };
 
 const addTodo = async (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  if (!req.body.task) {
+    return res.status(400).json({ message: 'Task is required' });
+  }
+
   const newTodo = {
     task: req.body.task,
     completed: req.body.completed || false, // default to false if not provided
     dateAdded: req.body.dateAdded || new Date(), // default to current date if not provided
+    owner: req.user.id, // associate the new todo with the authenticated user's id
   };
 
   try {
     const data = await Todo.createTodo(newTodo);
-    return res.status(200).json(data); // successful response will be an object with the new todo including its id as set by Mongo
+    return res.status(200).json(data.newTodo); // successful response will be an object with the new todo including its id as set by Mongo
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
 const updateTodo = async (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
   const id = req.params.id;
-  const updatedFields = req.body; // { title: "Updated title", completed: true }
-
-  delete updatedFields._id; // Ensure _id is not included in the update
-  delete updatedFields.dateAdded; // Ensure dateAdded is not included in the update
+  const updatedFields = req.body; // { task: "Updated title", completed: true }
 
   try {
     const data = await Todo.updateTodo(id, updatedFields);
@@ -59,6 +70,10 @@ const updateTodo = async (req, res, next) => {
 };
 
 const deleteTodo = async (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   const id = req.params.id;
 
   try {

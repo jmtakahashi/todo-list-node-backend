@@ -58,8 +58,7 @@ const loginUser = async function (req, res, next) {
     if (response.error) {
       return res.status(400).json(response);
     }
-
-    const token = jwt.sign({ id: response._id }, SECRET_KEY);
+    const token = jwt.sign({ id: response.id }, SECRET_KEY);
     return res.status(200).json(token);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)

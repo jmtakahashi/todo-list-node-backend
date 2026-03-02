@@ -118,9 +118,9 @@ User.getUserById = async function(id) {
     const users = db.collection('users');
     const user = await users.findOne({ _id: new ObjectId(id) });
     // user will be a user object if found, or null if not found
-    if (user) {
-      delete user.password; // remove the password field before returning the user object (for security reasons)
-    };
+    // if (user) {
+    //   delete user.password; // remove the password field before returning the user object (for security reasons)
+    // };
     return user;
   } catch (err) {
     console.error('❌ Mongo error:', err);
@@ -134,9 +134,9 @@ User.getUserByEmail = async function(email) {
     const users = db.collection('users');
     const user = await users.findOne({ email });
     // user will be a user object if found, or null if not found
-    if (user) {
-      delete user.password; // remove the password field before returning the user object (for security reasons)
-    }
+    // if (user) {
+    //   delete user.password; // remove the password field before returning the user object (for security reasons)
+    // }
     return user;
   } catch (err) {
     console.error('❌ Mongo error:', err);
