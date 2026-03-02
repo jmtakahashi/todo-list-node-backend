@@ -20,7 +20,12 @@ const getUserById = async function (req, res, next) {
   const id = req.params.id;
 
   try {
-    const response = await User.getUserById(id)
+    const response = await User.getUserById(id);
+
+    if (!response) {
+      return res.status(404).json({ error: 'User not found' });
+    };
+    
     return res.status(200).json(response);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
