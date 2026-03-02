@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 
 const { NotFoundError } = require("./utils/expressError");
+const { authenticateJWT } = require("./middleware/auth");
 
 const authRoutes = require('./routes/auth')
 const userRoutes = require('./routes/users')
@@ -13,9 +14,9 @@ const app = express();
 app.use(cors());
 // https://stackoverflow.com/a/71878799/7207125
 app.use(helmet({ crossOriginResourcePolicy: false }));
-// for parsing application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.json());
+app.use(authenticateJWT); // check for valid JWT and attach user to req if valid
 
 // router routes
 app.use("/auth", authRoutes);
