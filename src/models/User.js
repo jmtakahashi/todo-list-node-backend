@@ -57,19 +57,13 @@ User.validateUser = async function () {
   
 }
 
-User.register = async function(username, email, password) {
+User.register = async function (username, email, password) {
+  const hashedPassword = await User.hashPassword(password);
+  const createdAt = new Date();
+
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const users = db.collection('users');
-    const existingUser = await users.findOne({ email });
-
-    if (existingUser) {
-      return { error: 'Email already exists' };
-    }
-
-    const hashedPassword = await User.hashPassword(password);
-    const createdAt = new Date();
-
     const response = await users.insertOne({
       username,
       email,
@@ -91,17 +85,17 @@ User.register = async function(username, email, password) {
   }
 }
   
-User.login = async function(email, password) {
+User.login = async function (email, password) {
   try {
     const db = await connectDB();
     const users = db.collection('users');
-    const user = await users.findOne({ email });
+    const user = await User.getUserByEmail(email);
 
     if (!user) {
-      return { error: 'User not found' };
+      return { error: 'Invalid credentials' };
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await User.verifyPassword(password, user.password);
     if (!isValid) {
       return { error: 'Invalid credentials' };
     }
@@ -123,11 +117,20 @@ User.getUserById = async function(id) {
     const db = await connectDB(); // ✅ make sure connection is ready
     const users = db.collection('users');
     const user = await users.findOne({ _id: new ObjectId(id) });
+    // user will be a user object if found, or null if not found
+    return user;
+  } catch (err) {
+    console.error('❌ Mongo error:', err);
+    throw err; // re-throw the error to be caught by the controller's try-catch
+  }
+}
 
-    if (!user) {
-      return { message: 'User not found' };
-    }
-    delete user.password
+User.getUserByEmail = async function(email) {
+  try {
+    const db = await connectDB(); // ✅ make sure connection is ready
+    const users = db.collection('users');
+    const user = await users.findOne({ email });
+    // user will be a user object if found, or null if not found
     return user;
   } catch (err) {
     console.error('❌ Mongo error:', err);
@@ -206,5 +209,9 @@ User.hashPassword = async function(password) {
   const salt = await bcrypt.genSalt(BCRYPT_WORK_FACTOR);
   return await bcrypt.hash(password, salt);
 }
+
+User.verifyPassword = async function (password, hashedPassword) {
+  return await bcrypt.compare(password, hashedPassword);
+};
 
 module.exports = User;

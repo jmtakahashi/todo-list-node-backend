@@ -19,13 +19,19 @@ const jwt = require('jsonwebtoken');
 const registerUser = async function (req, res, next) {
   const { username, email, password } = req.body;
   
+  // make sure all required fields are provided
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Username, email, and password are required' });
+  }
+
   try {
-    const response = await User.register(username, email, password);
-
-    if (response.error) {
-      return res.status(400).json(response);
+    // check if user with the same email already exists
+    const user = await User.getUserByEmail(email);
+    if (user) {
+      return res.status(400).json({ error: 'Email already exists' });
     }
-
+    // if user with the same email doesn't exist, proceed to register the user
+    const response = await User.register(username, email, password);
     const token = jwt.sign({ id: response.id }, SECRET_KEY);
     return res.status(201).json(token);
   } catch (error) {
@@ -36,8 +42,18 @@ const registerUser = async function (req, res, next) {
 const loginUser = async function (req, res, next) {
   const { email, password } = req.body;
 
+  // make sure all required fields are provided
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ error: 'Email and password are required' });
+  }
+
   try {
     const response = await User.login(email, password);
+
+    // response will be either { id: userId } if successful, 
+    // or { error: 'User not found' } or { error: 'Invalid credentials' }
 
     if (response.error) {
       return res.status(400).json(response);
@@ -46,9 +62,9 @@ const loginUser = async function (req, res, next) {
     const token = jwt.sign({ id: response._id }, SECRET_KEY);
     return res.status(200).json(token);
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler) 
+    next(error); // Pass the error to the next middleware (e.g., error handler)
   }
-};
+};;
 
 const logoutUser = async function (req, res) {
   // Since JWTs are stateless, we can't invalidate them server-side.
