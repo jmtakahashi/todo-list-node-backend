@@ -6,7 +6,7 @@ const Todo = require('../models/Todo');
 // return res.status(500).json({ error: 'Database operation failed' });
 
 /**
- * Controllers:
+ Controllers:
 	•	Decide how errors map to HTTP
 	•	Decide status codes
 	•	Decide response shape

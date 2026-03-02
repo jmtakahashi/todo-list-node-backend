@@ -124,6 +124,8 @@ Todo.deleteTodo = async function (id) {
     const todos = db.collection('items');
     const response = await todos.deleteOne({ _id: new ObjectId(id) });
     /*
+    throws an error if invalid id format is provided
+    if valid id format is provided, response will be:
     {
       "acknowledged": true,
       "deletedCount": 1
