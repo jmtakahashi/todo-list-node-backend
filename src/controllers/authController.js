@@ -28,7 +28,7 @@ const registerUser = async function (req, res, next) {
     // check if user with the same email already exists
     const user = await User.getUserByEmail(email);
     if (user) {
-      return res.status(400).json({ error: 'Email already exists' });
+      return res.status(409).json({ error: 'Email already exists' });
     }
     // if user with the same email doesn't exist, proceed to register the user
     const response = await User.register(username, email, password);
@@ -56,7 +56,7 @@ const loginUser = async function (req, res, next) {
     // or { error: 'User not found' } or { error: 'Invalid credentials' }
 
     if (response.error) {
-      return res.status(400).json(response);
+      return res.status(401).json(response);
     }
     const token = jwt.sign({ id: response.id }, SECRET_KEY);
     return res.status(200).json(token);
