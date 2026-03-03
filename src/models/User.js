@@ -2,60 +2,11 @@ const connectDB = require('../config/db');
 const bcrypt = require('bcrypt');
 const { BCRYPT_WORK_FACTOR } = require('../config/config');
 const { ObjectId } = require('mongodb');
-
-/**
- * 	•	Catches Mongo’s ugly error
-	•	Throws a meaningful domain error
-	•	Knows nothing about HTTP
- */
-
-  /**
-   * What models SHOULD do with errors
-
-Models may:
-	•	Catch low-level errors (DB errors, driver errors)
-	•	Translate them into domain errors
-	•	Add context
-	•	Re-throw
-
-Models should not:
-	•	Send responses
-	•	Choose status codes
-	•	Decide client-facing messages
-   */
-
-
-/**
- * What goes in the model
-
-Models deal with data + domain rules.
-
-Models are responsible for:
-	•	Talking to the database
-	•	Data validation at the data level
-	•	Transforming raw DB records into usable objects
-	•	Enforcing domain constraints
-
-Models SHOULD contain:
-	•	CRUD operations
-	•	Query logic
-	•	Data normalization
-	•	DB-specific code (SQL, Mongo, Mongoose, Prisma, etc.)
-
-Models SHOULD NOT:
-	•	Use req or res
-	•	Know about HTTP status codes
-	•	Decide how errors are returned to the client
- */
 function User (username, email, password) {
   this.username = username;
   this.email = email;
   this.password = password;
 };
-
-User.validateUser = async function () {
-  
-}
 
 User.register = async function (username, email, password) {
   const hashedPassword = await User.hashPassword(password);
@@ -89,8 +40,9 @@ User.login = async function (email, password) {
   try {
     const db = await connectDB();
     const users = db.collection('users');
-    const user = await User.getUserByEmail(email);
+    const user = await users.findOne({ email });
 
+    // user will be a user object if found, or null if not found
     if (!user) {
       return { error: 'Invalid credentials' };
     }
@@ -100,7 +52,9 @@ User.login = async function (email, password) {
       return { error: 'Invalid credentials' };
     }
 
-    return { id: user._id };
+    delete user.password; // remove password before returning the user object (for security reasons)
+
+    return { user };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
@@ -118,9 +72,9 @@ User.getUserById = async function(id) {
     const users = db.collection('users');
     const user = await users.findOne({ _id: new ObjectId(id) });
     // user will be a user object if found, or null if not found
-    // if (user) {
-    //   delete user.password; // remove the password field before returning the user object (for security reasons)
-    // };
+    if (user) {
+      delete user.password; // remove the password field before returning the user object (for security reasons)
+    };
     return user;
   } catch (err) {
     console.error('❌ Mongo error:', err);
