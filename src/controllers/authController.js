@@ -21,20 +21,21 @@ const registerUser = async function (req, res, next) {
   
   // make sure all required fields are provided
   if (!username || !email || !password) {
-    return res.status(400).json({ error: 'Username, email, and password are required' });
+    return res.status(400).json({ message: 'Username, email, and password are required' });
   }
 
   try {
     // check if user with the same email already exists
     const user = await User.getUserByEmail(email);
     if (user) {
-      return res.status(409).json({ error: 'Email already exists' });
+      return res.status(409).json({ message: 'Email already exists' });
     }
-    // if user with the same email doesn't exist, proceed to register the user
+    // if user with the same email does NOT exist, proceed to register the user
     const response = await User.register(username, email, password);
     const token = jwt.sign({ id: response.id }, SECRET_KEY);
-    return res.status(201).json(token);
+    return res.status(201).json({token: token, message: 'User registered successfully', username: response.username});
   } catch (error) {
+    console.error('In authController registerUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
@@ -46,21 +47,22 @@ const loginUser = async function (req, res, next) {
   if (!email || !password) {
     return res
       .status(400)
-      .json({ error: 'Email and password are required' });
+      .json({ message: 'Email and password are required' });
   }
 
   try {
     const response = await User.login(email, password);
 
-    // response will be either { id: userId } if successful, 
+    // response will be either { user } if successful, 
     // or { error: 'User not found' } or { error: 'Invalid credentials' }
 
     if (response.error) {
-      return res.status(401).json(response);
+      return res.status(401).json({ message: response.error });
     }
-    const token = jwt.sign({ id: response.id }, SECRET_KEY);
-    return res.status(200).json(token);
+    const token = jwt.sign({ id: response._id }, SECRET_KEY);
+    return res.status(200).json({ token: token, message: 'Login successful', username: response.username });
   } catch (error) {
+    console.error('In authController loginUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };;
