@@ -29,7 +29,7 @@ User.register = async function (username, email, password) {
         "insertedId": new ObjectId('698bfd18f583137e71a9aece')
       }
     */
-    return { id: response.insertedId };
+    return { id: response.insertedId, message: 'User registered successfully' };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
@@ -44,17 +44,17 @@ User.login = async function (email, password) {
 
     // user will be a user object if found, or null if not found
     if (!user) {
-      return { error: 'Invalid credentials' };
+      return { message: 'Invalid credentials' };
     }
 
     const isValid = await User.verifyPassword(password, user.password);
     if (!isValid) {
-      return { error: 'Invalid credentials' };
+      return { message: 'Invalid credentials' };
     }
 
     delete user.password; // remove password before returning the user object (for security reasons)
 
-    return { user };
+    return { user, message: 'Login successful' };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch

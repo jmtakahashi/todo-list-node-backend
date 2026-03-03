@@ -32,8 +32,9 @@ const registerUser = async function (req, res, next) {
     }
     // if user with the same email does NOT exist, proceed to register the user
     const response = await User.register(username, email, password);
+    // successful response: { id: id, message: 'User registered successfully' }
     const token = jwt.sign({ id: response.id }, SECRET_KEY);
-    return res.status(201).json({token: token, message: 'User registered successfully', username: response.username});
+    return res.status(201).json({token: token, message: response.message, username: username});
   } catch (error) {
     console.error('In authController registerUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
@@ -53,14 +54,15 @@ const loginUser = async function (req, res, next) {
   try {
     const response = await User.login(email, password);
 
-    // response will be either { user } if successful, 
-    // or { error: 'User not found' } or { error: 'Invalid credentials' }
+    // response will be either { user: {...}, message: 'Login successful' } if successful, 
+    // or { message: 'Invalid credentials' }
 
-    if (response.error) {
-      return res.status(401).json({ message: response.error });
+    if (!response.user) {
+      return res.status(401).json({ message: response.message });
     }
-    const token = jwt.sign({ id: response._id }, SECRET_KEY);
-    return res.status(200).json({ token: token, message: 'Login successful', username: response.username });
+
+    const token = jwt.sign({ id: response.user._id }, SECRET_KEY);
+    return res.status(200).json({ token: token, message: response.message, username: response.user.username });
   } catch (error) {
     console.error('In authController loginUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
