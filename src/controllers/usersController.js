@@ -16,6 +16,22 @@ const jwt = require('jsonwebtoken');
 
   //const token = jwt.sign({ username: user.username }, SECRET_KEY);
 
+const checkExistingUser = async function (req, res, next) {
+  const { email } = req.body;
+
+  try {
+    const response = await User.getUserByEmail(email);
+
+    if(response) {
+      return res.status(200).json(true); // email exists
+    } else {
+      return res.status(200).json(false); // email does not exist
+    }
+  } catch (error) {
+    next(error); // Pass the error to the next middleware (e.g., error handler)
+  }
+};
+
 const getUserById = async function (req, res, next) {
   const id = req.params.id;
 
@@ -73,6 +89,7 @@ const deleteUser = async function (req, res, next) {
 };
 
 module.exports = {
+  checkExistingUser,
   getUserById,
   updateUser,
   deleteUser,
