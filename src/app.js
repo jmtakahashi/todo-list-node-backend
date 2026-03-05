@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 
+const corsOptions = require("./config/corsOptions");
 const { NotFoundError } = require("./utils/expressError");
 const { authenticateJWT } = require("./middleware/auth");
 
@@ -11,11 +13,12 @@ const todoRoutes = require('./routes/todos')
 
 const app = express();
 
-app.use(cors());
-// https://stackoverflow.com/a/71878799/7207125
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors(corsOptions));
+app.use(helmet());
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.json());
+app.use(cookieParser())
+
 app.use(authenticateJWT); // check for valid JWT and attach user to req if valid
 
 // router routes
