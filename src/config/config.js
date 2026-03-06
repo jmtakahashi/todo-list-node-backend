@@ -10,7 +10,10 @@ require("colors");
 const path = require("path");
 
 // SECRET_KEY used for auth with JWT
-const SECRET_KEY = process.env.SECRET_KEY || "secret-dev";
+const ACCESS_TOKEN_SECRET_KEY = process.env.ACCESS_TOKEN_SECRET_KEY || "secret-dev";
+const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '10d';
+const REFRESH_TOKEN_SECRET_KEY = process.env.REFRESH_TOKEN_SECRET_KEY || "refreshtokensecret-dev";
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '10d';
 
 // "+" uniary operator will try to convert the value to a number if it isn't already
 const PORT = +process.env.PORT || 3001;
@@ -26,7 +29,7 @@ function getDatabaseUri() {
 const BCRYPT_WORK_FACTOR = process.env.NODE_ENV === "test" ? 1 : 12;
 
 console.log("\nTodo List Config:".brightCyan);
-console.log("SECRET_KEY:".yellow, SECRET_KEY);
+console.log("ACCESS_TOKEN_SECRET_KEY:".yellow, ACCESS_TOKEN_SECRET_KEY);
 console.log("PORT:".yellow, PORT.toString());
 console.log("BCRYPT_WORK_FACTOR:".yellow, BCRYPT_WORK_FACTOR);
 console.log("MonogoDB URI:".yellow, getDatabaseUri());
@@ -34,7 +37,10 @@ console.log("NODE_ENV:".yellow, process.env.NODE_ENV);
 console.log("process.env".yellow, process.env);
 
 module.exports = {
-  SECRET_KEY,
+  ACCESS_TOKEN_SECRET_KEY,
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET_KEY,
+  REFRESH_TOKEN_EXPIRY,
   PORT,
   getDatabaseUri,
   BCRYPT_WORK_FACTOR

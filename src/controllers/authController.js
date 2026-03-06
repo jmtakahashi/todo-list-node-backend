@@ -1,6 +1,7 @@
 const User = require("../models/User");
-const { SECRET_KEY } = require('../config/config');
-const jwt = require('jsonwebtoken');
+const cookieOptions = require("../config/cookieOptions");
+const { generateAccessToken } = require("../utils/accessToken");
+
 // Controller functions that call the corresponding model functions and handle the HTTP responses
 // call next to pass control to the next middleware (e.g., error handling) if needed
 
@@ -33,8 +34,12 @@ const registerUser = async function (req, res, next) {
     // if user with the same email does NOT exist, proceed to register the user
     const response = await User.register(username, email, password);
     // successful response: { id: id, message: 'User registered successfully' }
-    const token = jwt.sign({ id: response.id }, SECRET_KEY);
-    return res.status(201).json({token: token, message: response.message, username: username});
+    const token = generateAccessToken({ id: response.id });
+    return res
+      .status(201)
+      .cookie('accessToken', token, cookieOptions)
+      // .cookie('refreshToken', refreshToken)
+      .json({ token: token, message: response.message, username: username });
   } catch (error) {
     console.error('In authController registerUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
@@ -61,8 +66,16 @@ const loginUser = async function (req, res, next) {
       return res.status(401).json({ message: response.message });
     }
 
-    const token = jwt.sign({ id: response.user._id }, SECRET_KEY);
-    return res.status(200).json({ token: token, message: response.message, username: response.user.username });
+    const token = generateAccessToken({ id: response.user._id });
+    return res
+      .status(200)
+      .cookie('accessToken', token, cookieOptions)
+      // .cookie("refreshToken", refreshToken)
+      .json({
+        token: token,
+        message: response.message,
+        username: response.user.username,
+      });
   } catch (error) {
     console.error('In authController loginUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
@@ -73,7 +86,10 @@ const logoutUser = async function (req, res) {
   // Since JWTs are stateless, we can't invalidate them server-side.
   // The client should simply delete the token on logout.
   await User.logout(); // This is just a placeholder in case we want to do any server-side cleanup in the future
-  return res.json({ message: "Logout successful. Please delete the token on the client side." });
+  return res
+    .clearCookie('accessToken')
+    // .clearCookie('refreshToken')
+    .json({ message: 'Logout successful.' });
 };
 
 module.exports = {
