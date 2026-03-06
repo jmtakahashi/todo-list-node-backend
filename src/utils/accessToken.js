@@ -1,8 +1,13 @@
-const { SECRET_KEY, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET_KEY, REFRESH_TOKEN_EXPIRY } = require("../config/config");
+const {
+  ACCESS_TOKEN_SECRET_KEY,
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET_KEY,
+  REFRESH_TOKEN_EXPIRY,
+} = require('../config/config');
 const jwt = require("jsonwebtoken");
 
 const generateAccessToken = function (payload) {
-  return jwt.sign(payload, SECRET_KEY, {
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET_KEY, {
       expiresIn: ACCESS_TOKEN_EXPIRY,
     },
   );

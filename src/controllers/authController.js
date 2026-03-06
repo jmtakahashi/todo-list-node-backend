@@ -1,21 +1,7 @@
 const User = require("../models/User");
 const cookieOptions = require("../config/cookieOptions");
-const { generateAccessToken } = require("../utils/accessToken");
+const { generateAccessToken, generateRefreshToken } = require("../utils/accessToken");
 
-// Controller functions that call the corresponding model functions and handle the HTTP responses
-// call next to pass control to the next middleware (e.g., error handling) if needed
-
-// return res.status(500).json({ error: 'Database operation failed' });
-
-/**
- Controllers:
-	•	Decide how errors map to HTTP
-	•	Decide status codes
-	•	Decide response shape
-   knows nothing about db
- */
-
-  //const token = jwt.sign({ username: user.username }, SECRET_KEY);
 
 const registerUser = async function (req, res, next) {
   const { username, email, password } = req.body;
@@ -58,7 +44,6 @@ const loginUser = async function (req, res, next) {
 
   try {
     const response = await User.login(email, password);
-
     // response will be either { user: {...}, message: 'Login successful' } if successful, 
     // or { message: 'Invalid credentials' }
 
@@ -92,8 +77,23 @@ const logoutUser = async function (req, res) {
     .json({ message: 'Logout successful.' });
 };
 
+const refreshToken = async function (req, res) {
+  try {
+    // This is a placeholder for the refresh token logic, which would involve verifying the refresh token,
+    // generating a new access token, and sending it back to the client.
+
+    return res
+      .status(501)
+      .json({ message: 'Refresh token functionality not implemented yet.' });
+  } catch (error) {
+    console.error('In authController refreshToken error:', error);
+    next(error); // Pass the error to the next middleware (e.g., error handler)
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  refreshToken
 };
