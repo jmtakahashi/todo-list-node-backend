@@ -7,6 +7,9 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
   ipv6Subnet: 56, // Set to 60 or 64 to be less aggressive, or 52 or 48 to be more aggressive
   // store: ... , // Redis, Memcached, etc. See below.
+  handler: function (req, res, next, options) {
+    return res.status(options.statusCode).json({ message: options.message })
+  },
 });
 
 module.exports = limiter;

@@ -10,5 +10,5 @@ app.listen(PORT, function () {
     process.env.NODE_ENV === 'production'
       ? process.env.VERCEL_PROJECT_PRODUCTION_URL
       : 'http://localhost';
-  console.log(`=> Started on ${url}:${PORT}\n`.brightCyan);
+  console.log('=> [server.js] Started on '.brightCyan + `${url}:${PORT}\n`);
 });
