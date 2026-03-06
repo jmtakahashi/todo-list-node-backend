@@ -5,8 +5,6 @@
 const app = require("./app");
 const { PORT } = require("./config/config");
 
-require("colors");
-
 app.listen(PORT, function () {
   const url =
     process.env.NODE_ENV === 'production'

@@ -64,6 +64,7 @@ User.login = async function (email, password) {
 User.logout = async function() {
   // Since JWTs are stateless, we can't invalidate them server-side.
   // The client should simply delete the token on logout.
+  // no db actions since we don't store tokens server-side
 }
 
 User.getUserById = async function(id) {
