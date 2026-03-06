@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const cookieOptions = require("../config/cookieOptions");
-const { generateAccessToken, generateRefreshToken } = require("../utils/accessToken");
+const { generateAccessToken, generateRefreshToken } = require("../services/accessToken");
 
 
 const registerUser = async function (req, res, next) {
