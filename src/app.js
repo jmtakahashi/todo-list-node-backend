@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 
 const corsOptions = require("./config/corsOptions");
 const { NotFoundError } = require("./utils/expressError");
-const { authenticateJWT } = require("./middleware/auth");
 
 const authRoutes = require('./routes/auth')
 const userRoutes = require('./routes/users')
@@ -18,8 +17,6 @@ app.use(helmet());
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.json());
 app.use(cookieParser())
-
-app.use(authenticateJWT); // check for valid JWT and attach user to req if valid
 
 // router routes
 app.use("/auth", authRoutes);
