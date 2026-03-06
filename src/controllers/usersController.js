@@ -1,20 +1,5 @@
 const User = require('../models/User');
-const { SECRET_KEY } = require('../config/config');
 const jwt = require('jsonwebtoken');
-// Controller functions that call the corresponding model functions and handle the HTTP responses
-// call next to pass control to the next middleware (e.g., error handling) if needed
-
-// return res.status(500).json({ error: 'Database operation failed' });
-
-/**
- Controllers:
-	•	Decide how errors map to HTTP
-	•	Decide status codes
-	•	Decide response shape
-   knows nothing about db
- */
-
-  //const token = jwt.sign({ username: user.username }, SECRET_KEY);
 
 const checkExistingUser = async function (req, res, next) {
   const { email } = req.body;
@@ -85,7 +70,6 @@ const deleteUser = async function (req, res, next) {
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
-  
 };
 
 module.exports = {
