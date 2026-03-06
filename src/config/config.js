@@ -2,10 +2,6 @@
 
 /** Shared config for application; can be required many places. */
 
-require("dotenv").config();
-// only need to require colors once (this will be accessible throuout our app)
-require("colors");
-
 // below are used for debugging
 const path = require("path");
 

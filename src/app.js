@@ -6,6 +6,10 @@ const cookieParser = require("cookie-parser");
 const corsOptions = require("./config/corsOptions");
 const { NotFoundError } = require("./utils/expressError");
 
+require('dotenv').config();
+// only need to require colors once (this will be accessible throuout our app)
+require('colors');
+
 const authRoutes = require('./routes/auth')
 const userRoutes = require('./routes/users')
 const todoRoutes = require('./routes/todos')
