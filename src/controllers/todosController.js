@@ -1,16 +1,11 @@
 const Todo = require('../models/Todo');
 
-/**
- Controllers:
-	•	Decide how errors map to HTTP
-	•	Decide status codes
-	•	Decide response shape
-   knows nothing about db
- */
-
-// req.user = {id: _id} is available here if we need to use it for auth/permissions
 
 const getAllTodos = async (req, res, next) => {
+  console.log('running todosController.getAllTodos'.brightCyan);
+
+  console.log('req.user in getAllTodos:'.yellow, req.user)
+  
   if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Unauthorized' });
   }

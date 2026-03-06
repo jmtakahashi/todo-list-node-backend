@@ -20,12 +20,20 @@ const registerUser = async function (req, res, next) {
     // if user with the same email does NOT exist, proceed to register the user
     const response = await User.register(username, email, password);
     // successful response: { id: id, message: 'User registered successfully' }
-    const token = generateAccessToken({ id: response.id });
-    return res
-      .status(201)
-      .cookie('accessToken', token, cookieOptions)
-      // .cookie('refreshToken', refreshToken)
-      .json({ token: token, message: response.message, username: username });
+    const accessToken = generateAccessToken({
+      id: response.id,
+      username: username,
+    });
+    const refreshToken = generateRefreshToken({ id: response.id, email: email });
+    return (
+      res
+        .status(201)
+        .cookie('refreshToken', refreshToken, cookieOptions)
+        .json({
+          accessToken: accessToken,
+          message: response.message,
+        })
+    );
   } catch (error) {
     console.error('In authController registerUser error:', error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
@@ -33,6 +41,8 @@ const registerUser = async function (req, res, next) {
 };
 
 const loginUser = async function (req, res, next) {
+  console.log('running authController.loginUser'.brightCyan);
+
   const { email, password } = req.body;
 
   // make sure all required fields are provided
@@ -51,15 +61,18 @@ const loginUser = async function (req, res, next) {
       return res.status(401).json({ message: response.message });
     }
 
-    const token = generateAccessToken({ id: response.user._id });
+    const accessToken = generateAccessToken({
+      id: response.user._id,
+      username: response.user.username,
+    });
+    const refreshToken = generateRefreshToken({ id: response.user._id, email: response.user.email });
     return res
       .status(200)
-      .cookie('accessToken', token, cookieOptions)
-      // .cookie("refreshToken", refreshToken)
+      .cookie('refreshToken', refreshToken, cookieOptions) // set the refresh token as an HTTP-only cookie
+      // send the access token in the response body
       .json({
-        token: token,
+        accessToken: accessToken,
         message: response.message,
-        username: response.user.username,
       });
   } catch (error) {
     console.error('In authController loginUser error:', error);
@@ -67,26 +80,36 @@ const loginUser = async function (req, res, next) {
   }
 };;
 
-const logoutUser = async function (req, res) {
+const logoutUser = async function (req, res, next) {
   // Since JWTs are stateless, we can't invalidate them server-side.
   // The client should simply delete the token on logout.
   await User.logout(); // This is just a placeholder in case we want to do any server-side cleanup in the future
   return res
-    .clearCookie('accessToken')
-    // .clearCookie('refreshToken')
+    .clearCookie('refreshToken', cookieOptions) // Clear the refresh token cookie on logout
     .json({ message: 'Logout successful.' });
 };
 
-const refreshToken = async function (req, res) {
-  try {
-    // This is a placeholder for the refresh token logic, which would involve verifying the refresh token,
-    // generating a new access token, and sending it back to the client.
+// this should issue a new access token if the refresh token is valid, and send it back to the client
+const refreshToken = async function (req, res, next) {
+  console.log('running authController.refreshToken'.brightCyan)
 
-    return res
-      .status(501)
-      .json({ message: 'Refresh token functionality not implemented yet.' });
+  // if the refresh token was validated in our middleware, then we 
+  // should have the user's info available in req.user.refresh
+  console.log('req.user in refreshToken controller:'.yellow, req.user)
+
+  if (!req.user || !req.user.refresh) {
+    return res.status(403).json({ message: 'Unauthorized. Invalid refresh token.' });
+  }
+
+  try {
+    // check if user exists
+    const user = await User.getUserByEmail(email);
+
+    // if user exists, generate a new access token and send back to the client
+    const accessToken = generateAccessToken({ id: user._id });
+    return res.status(200).json({accessToken});
   } catch (error) {
-    console.error('In authController refreshToken error:', error);
+    console.error('In refreshToken controller error:'.red, error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
