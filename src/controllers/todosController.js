@@ -29,8 +29,8 @@ const addTodo = async (req, res, next) => {
 
   const newTodo = {
     task: req.body.task,
-    completed: req.body.completed || false, // default to false if not provided
-    dateAdded: req.body.dateAdded || new Date(), // default to current date if not provided
+    completed: false, // default to false if not provided
+    dateAdded: new Date(), // default to current date if not provided
     owner: req.user.id, // associate the new todo with the authenticated user's id
   };
 
