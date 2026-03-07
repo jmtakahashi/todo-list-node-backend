@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(authenticateJWT); // check for valid JWT and attach user to req if valid
 
 router.get('/', controller.getAllTodos);
-router.post('/addTodo', controller.addTodo);
+router.post('/', controller.addTodo);
 router.patch('/:id', controller.updateTodo);
 router.delete('/:id', controller.deleteTodo);
 

@@ -2,10 +2,6 @@ const Todo = require('../models/Todo');
 
 
 const getAllTodos = async (req, res, next) => {
-  console.log('running todosController.getAllTodos'.brightCyan);
-
-  console.log('req.user in getAllTodos:'.yellow, req.user)
-  
   if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
