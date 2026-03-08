@@ -24,7 +24,7 @@ const registerUser = async function (req, res, next) {
       id: response.id,
       username: username,
     });
-    const refreshToken = generateRefreshToken({ id: response.id, email: email });
+    const refreshToken = generateRefreshToken({ id: response.id});
     return (
       res
         .status(201)
@@ -35,14 +35,12 @@ const registerUser = async function (req, res, next) {
         })
     );
   } catch (error) {
-    console.error('In authController registerUser error:', error);
+    console.error('In authController registerUser error:', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
 const loginUser = async function (req, res, next) {
-  console.log('running authController.loginUser'.brightCyan);
-
   const { email, password } = req.body;
 
   // make sure all required fields are provided
@@ -65,7 +63,7 @@ const loginUser = async function (req, res, next) {
       id: response.user._id,
       username: response.user.username,
     });
-    const refreshToken = generateRefreshToken({ id: response.user._id, email: response.user.email });
+    const refreshToken = generateRefreshToken({ id: response.user._id });
     return res
       .status(200)
       .cookie('refreshToken', refreshToken, cookieOptions) // set the refresh token as an HTTP-only cookie
@@ -75,10 +73,10 @@ const loginUser = async function (req, res, next) {
         message: response.message,
       });
   } catch (error) {
-    console.error('In authController loginUser error:', error);
+    console.error('In authController loginUser error:', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
-};;
+};
 
 const logoutUser = async function (req, res, next) {
   // Since JWTs are stateless, we can't invalidate them server-side.
@@ -93,12 +91,8 @@ const logoutUser = async function (req, res, next) {
 // we have middleware set to validate the refresh token and attach the decoded payload to req.user.refresh,
 //  so if we have that info available then we know the refresh token is valid and we can issue a new access token
 const refreshToken = async function (req, res, next) {
-  console.log('running authController.refreshToken'.brightCyan);
-
   // if the refresh token was validated in our middleware, then we
   // should have the user's info available in req.user.refresh
-  console.log('req.user in refreshToken controller:'.yellow, req.user);
-
   if (!req.user || !req.user.refresh) {
     return res
       .status(403)
@@ -113,10 +107,10 @@ const refreshToken = async function (req, res, next) {
     const user = await User.getUserById(id);
 
     // if user exists, generate a new access token and send back to the client
-    const accessToken = generateAccessToken({ id: user._id });
+    const accessToken = generateAccessToken({ id: user._id, username: user.username });
     return res.status(200).json({ accessToken });
   } catch (error) {
-    console.error('In refreshToken controller error:'.red, error);
+    console.error('In refreshToken controller error:'.red, error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
