@@ -90,24 +90,31 @@ const logoutUser = async function (req, res, next) {
 };
 
 // this should issue a new access token if the refresh token is valid, and send it back to the client
+// we have middleware set to validate the refresh token and attach the decoded payload to req.user.refresh,
+//  so if we have that info available then we know the refresh token is valid and we can issue a new access token
 const refreshToken = async function (req, res, next) {
-  console.log('running authController.refreshToken'.brightCyan)
+  console.log('running authController.refreshToken'.brightCyan);
 
-  // if the refresh token was validated in our middleware, then we 
+  // if the refresh token was validated in our middleware, then we
   // should have the user's info available in req.user.refresh
-  console.log('req.user in refreshToken controller:'.yellow, req.user)
+  console.log('req.user in refreshToken controller:'.yellow, req.user);
 
   if (!req.user || !req.user.refresh) {
-    return res.status(403).json({ message: 'Unauthorized. Invalid refresh token.' });
+    return res
+      .status(403)
+      .json({ message: 'Unauthorized. Invalid refresh token.' });
   }
 
+  // we can use the id from the decoded refresh token payload to identify the user and issue a new access token
+  const id = req.user.refresh.id;
+
   try {
-    // check if user exists
-    const user = await User.getUserByEmail(email);
+    // check if user exists in the db
+    const user = await User.getUserById(id);
 
     // if user exists, generate a new access token and send back to the client
     const accessToken = generateAccessToken({ id: user._id });
-    return res.status(200).json({accessToken});
+    return res.status(200).json({ accessToken });
   } catch (error) {
     console.error('In refreshToken controller error:'.red, error);
     next(error); // Pass the error to the next middleware (e.g., error handler)

@@ -17,7 +17,8 @@ const authenticateJWT = (req, res, next) => {
   } catch (err) {
     err.message = 'From authenticateJWT: ' + err.message;
     console.error('In authenticateJWT error:'.red, err);
-    return next();
+    // handle the error here and do NOT pass on to the next handler
+    return res.status(403).json({ message: 'Forbidden. Invalid or expired token.' });
   }
 };
 
@@ -31,7 +32,8 @@ const authenticateRefreshToken = (req, res, next) => {
   } catch (err) {
     err.message = 'From authenticateRefreshToken: ' + err.message;
     console.error('In authenticateRefreshToken error:'.red, err);
-    return next()
+    // handle the error here and do NOT pass on to the next handler
+    return res.status(403).json({ message: 'Forbidden. Invalid or expired token.' });
   }
 }
 

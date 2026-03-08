@@ -14,6 +14,7 @@ const getAllTodos = async (req, res, next) => {
     const data = await Todo.getAllTodos(req.user.id); // pass the authenticated user's id to get only their todos
     return res.status(200).json(data);
   } catch (error) {
+    console.error('in todosController.getAllTodos error:'.red, error);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
