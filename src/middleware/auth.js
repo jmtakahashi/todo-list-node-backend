@@ -5,13 +5,15 @@ const authenticateJWT = (req, res, next) => {
   try {
     // access token will come in the Authorization header in the format "Bearer <token>"
     // token will contain id and username in the payload
-    const authHeader = req.headers.authorization || req.headers.Authorization; // Get the Authorization header from the request
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Unauthorized. No access token provided.' });
     }
-    const accessToken = authHeader.split(' ')[1]; // Get the access token from the Authorization header
+
+    const accessToken = authHeader.split(' ')[1]; // extract token from Authorization header
     const { id, username } = jwt.verify(accessToken, ACCESS_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
-    req.user = { id, username }; // Attach the decoded payload to the request object for use in subsequent middleware or route handlers
+    req.user = { id, username };
     return next();
   } catch (err) {
     console.error('In authenticateJWT error:'.red, err.message);
@@ -23,8 +25,15 @@ const authenticateJWT = (req, res, next) => {
 const authenticateRefreshToken = (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken; // Get the refresh token from the cookie
-    const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
-    req.user = { refresh: payload }; // Attach the decoded payload to the request object for use in subsequent middleware or route handlers
+
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized. No refresh token provided.' });
+    }
+
+    const { id } = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
+    req.user = { id };
     return next();
   } catch (err) {
     console.error('In authenticateRefreshToken error:'.red, err.message);

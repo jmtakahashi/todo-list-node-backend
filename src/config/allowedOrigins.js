@@ -5,5 +5,4 @@ const allowedOrigins = [
   "https://todo-list-node-backend.onrender.com"
 ];
 
-
 module.exports = allowedOrigins;

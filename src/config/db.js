@@ -1,13 +1,12 @@
-/** Mongodb setup for todo app. */
-/** - this file is required in our models files or routes */
+/* Mongodb db setup - required in our models files or routes */
 
 const { MongoClient } = require("mongodb");
 const { getDatabaseUri } = require("./config");
 
 const client = new MongoClient(getDatabaseUri());
 
-/** Connect to MongoDB (only once) and return the db instance */
-// the connectDB function solution gotten from chatGPT.  mongo docs show different
+// Connect to MongoDB (only once) and return the db instance
+// the connectDB fn() solution gotten from chatGPT.  mongo docs show different
 let db;
 
 async function connectDB() {
