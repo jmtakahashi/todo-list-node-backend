@@ -59,7 +59,7 @@ User.register = async function (username, email, password) {
 
     // if user with the same email does NOT exist, proceed to register the user
     const hashedPassword = await User.hashPassword(password);
-    
+
     const response = await users.insertOne({
       username,
       email,
@@ -75,7 +75,7 @@ User.register = async function (username, email, password) {
       }
     */
 
-    return { id: response.insertedId, message: 'User registered successfully' };
+    return { _id: response.insertedId, message: 'User registered successfully' };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
@@ -88,12 +88,8 @@ User.login = async function (email, password) {
   email = email.trim().toLowerCase();
   password = password.trim();
 
-  if (typeof email !== 'string') { email = ''; }
-  if (typeof password !== 'string') { password = ''; }
-
-  // validate
-  if (!validator.isEmail(email)) { return { error: 'Invalid credentials.' } }
-  if (!PASSWORD_REGEX.test(password)) { return { error: 'Invalid credentials.' } }
+  if (typeof email !== 'string') { return { error: 'Invalid credentials.' }; }
+  if (typeof password !== 'string') { return { error: 'Invalid credentials.' }; }
 
   try {
     const db = await connectDB();

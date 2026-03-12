@@ -29,13 +29,13 @@ const registerUser = async function (req, res, next) {
       return res.status(400).json({ message: response.error });
     }
 
-    // successful response: { id: id, message: 'User registered successfully' }
+    // successful response: { _id: id, message: 'User registered successfully' }
     const accessToken = generateAccessToken({
-      id: response.id,
+      id: response._id,
       username,
     });
 
-    const refreshToken = generateRefreshToken({ id: response.id });
+    const refreshToken = generateRefreshToken({ id: response._id });
     
     return (
       res

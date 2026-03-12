@@ -21,7 +21,7 @@ Todo.getAllTodos = async function (ownerId) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todos = db.collection('items');
-    const response = await todos.find({ owner: ownerId }).toArray();
+    const response = await todos.find({ ownerId }).toArray();
 
     // response will be an array of todo objects (can be empty if user has no todos)
 
@@ -56,12 +56,14 @@ Todo.createTodo = async function (task, ownerId) {
       throw new Error('Invalid ownerId. User not found');
     }
 
-    const response = await todos.insertOne({
+    const newTodo = {
       task,
       completed: false,
       dateAdded: new Date(),
-      ownerId: new ObjectId(ownerId),
-    });
+      ownerId,
+    };
+
+    const response = await todos.insertOne(newTodo);
 
     /*
       - response:
@@ -77,7 +79,7 @@ Todo.createTodo = async function (task, ownerId) {
 
     return {
       response,
-      newTodo: { id: response.insertedId, task, completed, dateAdded, owner },
+      newTodo: { ...newTodo, _id: response.insertedId },
       message: 'Todo created successfully',
     };
   } catch (err) {
