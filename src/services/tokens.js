@@ -17,9 +17,6 @@ const generateAccessToken = function (payload) {
 };
 
 const generateRefreshToken = function (payload) {
-  console.log(
-    REFRESH_TOKEN_SECRET_KEY,
-  );
   return jwt.sign(
     payload, 
     REFRESH_TOKEN_SECRET_KEY,
