@@ -1,9 +1,6 @@
 "use strict";
 
-/** Shared config for application; can be required many places. */
-
-// below are used for debugging
-const path = require("path");
+/* Shared config for application - can be required many places. */
 
 // SECRET_KEY used for auth with JWT
 const ACCESS_TOKEN_SECRET_KEY = process.env.ACCESS_TOKEN_SECRET_KEY;

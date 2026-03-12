@@ -1,17 +1,35 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+
 const checkExistingUser = async function (req, res, next) {
+  if ( !req.body || !req.body.email) {
+    return res
+      .status(400)
+      .json({ message: 'Email required.' });
+  }
+
   const { email } = req.body;
 
   try {
     const response = await User.getUserByEmail(email);
 
-    if(response) {
-      return res.status(200).json(true); // email exists
-    } else {
+    if (!response) {
+      return res
+        .status(500)
+        .json({ message: 'An error occured, please try again.' });
+    }
+
+    // errors in data
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+
+    if (!response.user) {
       return res.status(200).json(false); // email does not exist
     }
+
+    return res.status(200).json(true); // email exists
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
@@ -24,25 +42,49 @@ const getUserById = async function (req, res, next) {
     const response = await User.getUserById(id);
 
     if (!response) {
-      return res.status(404).json({ error: 'User not found' });
-    };
+      return res
+        .status(500)
+        .json({ message: 'An error occured, please try again.' });
+    }
+
+    // errors in data
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
     
+    if (!response.user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     return res.status(200).json(response);
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
 
+/* update an existing user */
 const updateUser = async function (req, res, next) {
-  const id = req.params.id;
-  const updatedFields = req.body; // { username: "newUsername", password: "newPassword" }
+  if (!req.body || !(req.body.username || req.body.password)) {
+    return res.status(400).json({ message: 'Updated fields required' });
+  }
 
-  delete updatedFields._id; // Ensure _id is not included in the update
-  delete updatedFields.createdAt; // Ensure createdAt is not included in the update
+  const id = req.params.id;
+  const updatedFields = req.body; // ex. { username: "newUsername", password: "newPassword" }
 
   try {
     const response = await User.updateUser(id, updatedFields);
 
+    if (!response) {
+      return res
+        .status(500)
+        .json({ message: 'An error occured, please try again.' });
+    }
+
+    // errors in data
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+    
     if (response.matchedCount === 0) {
       return res.status(404).json({ message: response.message });
     }
@@ -56,17 +98,29 @@ const updateUser = async function (req, res, next) {
   }
 };
 
+/* delete an existing user by id */
 const deleteUser = async function (req, res, next) {
-  const id = req.params.id;
+  const userId = req.params.id;
 
   try {
-    const response = await User.deleteUser(id);
+    const response = await User.deleteUser(userId);
 
+    if (!response) {
+      return res
+        .status(500)
+        .json({ message: 'An error occured, please try again.' });
+    }
+
+    // errors in data
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+    
     if (response.deletedCount === 0) {
       return res.status(404).json({ message: response.message });
-    } else {
-      return res.status(200).json({message: response.message});
     }
+
+    return res.status(200).json({ message: response.message });
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
