@@ -1,4 +1,4 @@
-const connectDB = require('../config/db');
+const { connectDB } = require('../config/db');
 const bcrypt = require('bcrypt');
 const { BCRYPT_WORK_FACTOR } = require('../config/config');
 const { ObjectId } = require('mongodb');
@@ -47,10 +47,10 @@ User.register = async function (username, email, password) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const users = db.collection('users');
+    const usersCollection = db.collection('users');
 
     // check if user with the same email already exists
-    const user = await users.findOne({ email });
+    const user = await usersCollection.findOne({ email });
 
     // let the controller know if the email is already in use so it can return the appropriate error response
     if (user) {
@@ -60,7 +60,7 @@ User.register = async function (username, email, password) {
     // if user with the same email does NOT exist, proceed to register the user
     const hashedPassword = await User.hashPassword(password);
 
-    const response = await users.insertOne({
+    const response = await usersCollection.insertOne({
       username,
       email,
       password: hashedPassword,
@@ -93,10 +93,10 @@ User.login = async function (email, password) {
 
   try {
     const db = await connectDB();
-    const users = db.collection('users');
+    const usersCollection = db.collection('users');
 
     // find the user by email
-    const user = await users.findOne({ email });
+    const user = await usersCollection.findOne({ email });
 
     // user will be a user object if found, or null if not found
     if (!user) {
@@ -131,8 +131,8 @@ User.getUserById = async function (id) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const users = db.collection('users');
-    const user = await users.findOne({ _id: new ObjectId(id) });
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
 
     // user will be a user object if found, or null if not found
 
@@ -160,8 +160,8 @@ User.getUserByEmail = async function (email) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const users = db.collection('users');
-    const user = await users.findOne({ email });
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ email });
 
     // user will be a user object if found, or null if not found
 
@@ -220,8 +220,8 @@ User.updateUser = async function (id, updatedFields) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const users = db.collection('users');
-    const response = await users.updateOne(
+    const usersCollection = db.collection('users');
+    const response = await usersCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: fieldsToUpdate },
     );
@@ -270,8 +270,8 @@ User.deleteUser = async function (id) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const users = db.collection('users');
-    const response = await users.deleteOne({ _id: new ObjectId(id) });
+    const usersCollection = db.collection('users');
+    const response = await usersCollection.deleteOne({ _id: new ObjectId(id) });
 
     /*
       - throws an error if invalid id format is provided
