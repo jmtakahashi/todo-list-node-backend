@@ -1,4 +1,4 @@
-const connectDB = require('../config/db');
+const { connectDB } = require('../config/db');
 const User = require('./User');
 const { ObjectId } = require('mongodb');
 const validator = require('validator');
@@ -20,8 +20,8 @@ Todo.getAllTodos = async function (ownerId) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.find({ ownerId }).toArray();
+    const todosCollection = db.collection('todos');
+    const response = await todosCollection.find({ ownerId }).toArray();
 
     // response will be an array of todo objects (can be empty if user has no todos)
 
@@ -47,7 +47,7 @@ Todo.createTodo = async function (task, ownerId) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
+    const todosCollection = db.collection('todos');
 
     // ensure ownerId is actually a user in the db
     const data = await User.getUserById(ownerId);
@@ -63,7 +63,7 @@ Todo.createTodo = async function (task, ownerId) {
       ownerId,
     };
 
-    const response = await todos.insertOne(newTodo);
+    const response = await todosCollection.insertOne(newTodo);
 
     /*
       - response:
@@ -117,8 +117,8 @@ Todo.updateTodo = async function (id, updatedFields) {
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.updateOne(
+    const todosCollection = db.collection('todos');
+    const response = await todosCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: fieldsToUpdate },
     );
@@ -168,8 +168,8 @@ Todo.deleteTodo = async function (id) {
   
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
-    const todos = db.collection('items');
-    const response = await todos.deleteOne({ _id: new ObjectId(id) });
+    const todosCollection = db.collection('todos');
+    const response = await todosCollection.deleteOne({ _id: new ObjectId(id) });
 
     /*
       - throws an error if invalid id format is provided
