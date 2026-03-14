@@ -92,17 +92,15 @@ Todo.updateTodo = async function (todoId, updatedFields) {
     }
   });
 
-  // get the updated fields out of updatedFields for validation and cleanup
+  // get the sent fields out of updatedFields for validation and cleanup
   let { task, completed } = updatedFields;
 
   // cleanup
   todoId = todoId.trim();
   task = task.trim();
 
-  if (typeof todoId !== 'string') { todoId = '' }
-  if (typeof task !== 'string') { task = ''; }
-  
-  if (!task) { return { error: 'Invalid task value' } }
+  if (typeof todoId !== 'string') { return { error: 'Invalid id' } }
+  if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
   if (typeof completed !== 'boolean') { return { error: 'Invalid completed value' }; }
   
   const dateUpdated = new Date();
@@ -146,7 +144,7 @@ Todo.updateTodo = async function (todoId, updatedFields) {
 
     return {
       modifiedCount: response.modifiedCount,
-      updatedTodo: {},
+      // updatedTodo: {},
       message: 'Todo updated successfully',
     };
   } catch (err) {

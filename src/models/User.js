@@ -186,19 +186,17 @@ User.updateUser = async function (userId, updatedFields) {
     }
   });
 
-  // get the updated fields out of updatedFields for validation and cleanup
+  // get the sent fields out of updatedFields for validation and cleanup
   let { username, password } = updatedFields;
-
-  console.log('username: ', username)
-  console.log('password: ', password)
-
+ 
+  // cleanup
   userId = userId.trim();
   username = username.trim().toLowerCase();
-  password = password.trim().toLowerCase();
+  password = password.trim();
 
-  if (typeof userId !== 'string') { userId = ''; }  
-  if (typeof username !== 'string') { username = ''; }  
-  if (typeof password !== 'string') { password = ''; }
+  if (typeof userId !== 'string') { return { error: 'Invalid id' }; }  
+  if (typeof username !== 'string') { return { error: 'Invalid username value' } }  
+  if (typeof password !== 'string') { return { error: 'Invalid password value' } }
 
   if (!USERNAME_REGEX.test(username)) {
     return {
@@ -255,7 +253,7 @@ User.updateUser = async function (userId, updatedFields) {
 
     return {
       modifiedCount: response.modifiedCount,
-      updatedUser: {},
+      // updatedUser: {},
       message: 'User updated successfully',
     };
   } catch (err) {
