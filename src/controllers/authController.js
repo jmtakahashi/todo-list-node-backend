@@ -16,7 +16,7 @@ const registerUser = async function (req, res, next) {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // user already exists with the same email, return an error
@@ -68,7 +68,7 @@ const loginUser = async function (req, res, next) {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // errors in data
