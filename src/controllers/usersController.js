@@ -96,8 +96,8 @@ const updateUser = async function (req, res, next) {
     }
 
     // successful response will be { modifiedCount: response.modifiedCount, updatedUser: {}, message: 'User updated successfully' }
-    const { updatedUser, message } = response;
-    return res.status(200).json({ updatedUser, message });
+    const { message } = response;
+    return res.status(200).json({ message });
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }

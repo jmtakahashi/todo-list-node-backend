@@ -90,8 +90,8 @@ const updateTodo = async (req, res, next) => {
     }
 
     // successful response will be { modifiedCount: response.modifiedCount, updatedTodo: {}, message: 'Todo updated successfully' }
-    const { updatedTodo, message } = response;
-    return res.status(200).json({ updatedTodo, message });
+    const { message } = response;
+    return res.status(200).json({ message });
   } catch (error) {
     next(error);
   }
