@@ -113,7 +113,7 @@ const logoutUser = async function (req, res, next) {
   return res
     .status(200)
     .clearCookie('refreshToken', cookieOptions) // Clear the refresh token cookie on logout
-    .json({ message: 'Logout successful.' });
+    .json({ message: 'Logout successful' });
 };
 
 /* refresh an existing user's access token */
@@ -126,15 +126,15 @@ const refreshToken = async function (req, res, next) {
 
   try {
     // check if user exists in the db
-    const user = await User.getUserById(userId);
+    const response = await User.getUserById(userId); // user: { user: userInfo}
 
     // if user does not exist, return an error (this should be a rare case since the refresh token is valid, but we check just in case)
-    if (!user) {
+    if (!response.user) {
       return res.status(403).json({ message: 'Forbidden.  User not found.' });
     }
 
     // if user exists, generate a new access token and send back to the client
-    const accessToken = generateAccessToken({ id: user._id, username: user.username });
+    const accessToken = generateAccessToken({ id: response.user._id, username: response.user.username });
 
     return res.status(200).json({ accessToken });
   } catch (error) {
