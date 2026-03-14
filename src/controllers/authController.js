@@ -24,7 +24,7 @@ const registerUser = async function (req, res, next) {
        return res.status(409).json({ message: 'Email already exists' });
     }
 
-    // errors in data
+    // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
@@ -71,14 +71,17 @@ const loginUser = async function (req, res, next) {
         .json({ error: 'An error occured, please try again.' });
     }
 
-    // errors in data
+    // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
     
     // response will be { user: {user} OR null, message }
+    // error could be invalid email (user not found) or invalid password (user found but password does not match)
+    // either way we do not let the front end know which one is incorrect for security reasons, we just return a generic "Invalid credentials" message
     if (!response.user) {
-      return res.status(401).json({ message: response.message });
+      console.log('in authController.loginUser. login error: ' response.message)
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const accessToken = generateAccessToken({

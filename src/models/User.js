@@ -100,13 +100,13 @@ User.login = async function (email, password) {
 
     // user will be a user object if found, or null if not found
     if (!user) {
-      return { user, message: 'Invalid credentials' };
+      return { user, message: 'User not found' };
     }
 
     const isValid = await User.verifyPassword(password, user.password);
 
     if (!isValid) {
-      return { user: null, message: 'Invalid credentials' };
+      return { user: null, message: 'Invalid password' };
     }
 
     delete user.password; // remove password before returning the user object (for security reasons)
@@ -124,15 +124,15 @@ User.logout = async function() {
 }
 
 /* retrieve a user by id - does NOT return password */
-User.getUserById = async function (id) {
+User.getUserById = async function (userId) {
   // cleanup
-  id = id.trim();
-  if (typeof id !== 'string') { id = ''; }
+  userId = userId.trim();
+  if (typeof userId !== 'string') { userId = ''; }
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
 
     // user will be a user object if found, or null if not found
 
@@ -177,7 +177,7 @@ User.getUserByEmail = async function (email) {
 };;
 
 /* update a user in the database */
-User.updateUser = async function (id, updatedFields) {
+User.updateUser = async function (userId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['username', 'password'];
   Object.keys(updatedFields).forEach((key) => {
@@ -192,11 +192,11 @@ User.updateUser = async function (id, updatedFields) {
   console.log('username: ', username)
   console.log('password: ', password)
 
-  id = id.trim();
+  userId = userId.trim();
   username = username.trim().toLowerCase();
   password = password.trim().toLowerCase();
 
-  if (typeof id !== 'string') { id = ''; }  
+  if (typeof userId !== 'string') { userId = ''; }  
   if (typeof username !== 'string') { username = ''; }  
   if (typeof password !== 'string') { password = ''; }
 
@@ -222,7 +222,7 @@ User.updateUser = async function (id, updatedFields) {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
     const response = await usersCollection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(userId) },
       { $set: fieldsToUpdate },
     );
 
@@ -265,14 +265,14 @@ User.updateUser = async function (id, updatedFields) {
 };
 
 /* remove a user from the database */
-User.deleteUser = async function (id) {
-  id = id.trim();
-  if (typeof id !== 'string') { id = ''; }
+User.deleteUser = async function (userId) {
+  userId = userId.trim();
+  if (typeof userId !== 'string') { userId = ''; }
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
-    const response = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    const response = await usersCollection.deleteOne({ _id: new ObjectId(userId) });
 
     /*
       - throws an error if invalid id format is provided

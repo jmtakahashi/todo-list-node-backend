@@ -14,9 +14,7 @@ function Todo (title, completed, createdAt, updatedAt, owner) {
 /* retrieve all todos for a specific user from the db */
 Todo.getAllTodos = async function (ownerId) {
   ownerId = ownerId.trim();
-  if (typeof id !== 'string') {
-    id = '';
-  }
+  if (typeof ownerId !== 'string') { ownerId = ''; }
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -38,12 +36,8 @@ Todo.createTodo = async function (task, ownerId) {
   ownerId = ownerId.trim();
   task = task.trim();
 
-  if (typeof ownerId !== 'string') {
-    ownerId = '';
-  }
-  if (typeof task !== 'string') {
-    task = '';
-  }
+  if (typeof ownerId !== 'string') { ownerId = ''; }
+  if (typeof task !== 'string') { task = ''; }
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -89,7 +83,7 @@ Todo.createTodo = async function (task, ownerId) {
 };
 
 /* update a todo in the databse */
-Todo.updateTodo = async function (id, updatedFields) {
+Todo.updateTodo = async function (todoId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['task', 'completed'];
   Object.keys(updatedFields).forEach((key) => {
@@ -102,10 +96,10 @@ Todo.updateTodo = async function (id, updatedFields) {
   let { task, completed } = updatedFields;
 
   // cleanup
-  id = id.trim();
+  todoId = todoId.trim();
   task = task.trim();
 
-  if (typeof id !== 'string') { id = '' }
+  if (typeof todoId !== 'string') { todoId = '' }
   if (typeof task !== 'string') { task = ''; }
   
   if (!task) { return { error: 'Invalid task value' } }
@@ -119,7 +113,7 @@ Todo.updateTodo = async function (id, updatedFields) {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
     const response = await todosCollection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(todoId) },
       { $set: fieldsToUpdate },
     );
 
@@ -162,14 +156,14 @@ Todo.updateTodo = async function (id, updatedFields) {
 };;;
 
 /* delete a a todo from the database */
-Todo.deleteTodo = async function (id) {
-  id = id.trim();
-  if (typeof id !== 'string') { id = ''; }
+Todo.deleteTodo = async function (todoId) {
+  todoId = todoId.trim();
+  if (typeof todoId !== 'string') { todoId = ''; }
   
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
-    const response = await todosCollection.deleteOne({ _id: new ObjectId(id) });
+    const response = await todosCollection.deleteOne({ _id: new ObjectId(todoId) });
 
     /*
       - throws an error if invalid id format is provided
