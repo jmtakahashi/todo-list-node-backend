@@ -13,13 +13,13 @@ const getAllTodos = async (req, res, next) => {
         .json({ error: 'An error occured, please try again.' });
     }
 
-    // errors in data
+    // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
     
     // successful response will be { todos: response } where response is an array of todo objects (can be empty if user has no todos)
-    const todos = response.todos;
+    const { todos } = response;
 
     return res.status(200).json({ todos });
   } catch (error) {
@@ -45,7 +45,7 @@ const addTodo = async (req, res, next) => {
         .json({ error: 'An error occured, please try again.' });
     }
 
-    // errors in data
+    // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
@@ -73,7 +73,7 @@ const updateTodo = async (req, res, next) => {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // errors in data
@@ -108,10 +108,10 @@ const deleteTodo = async (req, res, next) => {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
-    // errors in datas
+    // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
