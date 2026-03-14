@@ -255,6 +255,7 @@ User.updateUser = async function (id, updatedFields) {
 
     return {
       modifiedCount: response.modifiedCount,
+      updatedUser: {},
       message: 'User updated successfully',
     };
   } catch (err) {

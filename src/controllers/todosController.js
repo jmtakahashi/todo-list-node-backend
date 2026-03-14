@@ -10,7 +10,7 @@ const getAllTodos = async (req, res, next) => {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // errors in data
@@ -19,7 +19,9 @@ const getAllTodos = async (req, res, next) => {
     }
     
     // successful response will be { todos: response } where response is an array of todo objects (can be empty if user has no todos)
-    return res.status(200).json(response);
+    const todos = response.todos;
+
+    return res.status(200).json({ todos });
   } catch (error) {
     next(error);
   }
@@ -40,7 +42,7 @@ const addTodo = async (req, res, next) => {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // errors in data
@@ -49,7 +51,8 @@ const addTodo = async (req, res, next) => {
     }
     
     // successful response will be { response, newTodo: { _id: response.insertedId, task, completed, dateAdded, owner }, message: 'Todo created successfully' };
-    return res.status(200).json(response);
+    const { newTodo, message} = response;
+    return res.status(200).json({ newTodo, message});
   } catch (error) {
     next(error);
   }
@@ -87,7 +90,8 @@ const updateTodo = async (req, res, next) => {
     }
 
     // successful response will be { modifiedCount: response.modifiedCount, updatedTodo: {}, message: 'Todo updated successfully' }
-    return res.status(200).json(response);
+    const { updatedTodo, message } = response;
+    return res.status(200).json({ updatedTodo, message });
   } catch (error) {
     next(error);
   }

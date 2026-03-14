@@ -17,7 +17,7 @@ const checkExistingUser = async function (req, res, next) {
     if (!response) {
       return res
         .status(500)
-        .json({ message: 'An error occured, please try again.' });
+        .json({ error: 'An error occured, please try again.' });
     }
 
     // errors in data
@@ -53,10 +53,12 @@ const getUserById = async function (req, res, next) {
     }
     
     if (!response.user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    return res.status(200).json(response);
+    const user = response.user;
+
+    return res.status(200).json({ user });
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
@@ -84,7 +86,7 @@ const updateUser = async function (req, res, next) {
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
-    
+
     if (response.matchedCount === 0) {
       return res.status(404).json({ message: response.message });
     }
@@ -92,7 +94,10 @@ const updateUser = async function (req, res, next) {
     if (response.modifiedCount === 0) {
       return res.status(400).json({ message: response.message });
     }
-    return res.status(200).json({ message: response.message });
+
+    // successful response will be { modifiedCount: response.modifiedCount, updatedUser: {}, message: 'User updated successfully' }
+    const { updatedUser, message } = response;
+    return res.status(200).json({ updatedUser, message });
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
