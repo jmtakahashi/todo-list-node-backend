@@ -4,11 +4,9 @@ const { authenticateJWT } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(authenticateJWT); // check for valid JWT and attach user to req if valid
-
 router.post('/checkExistingUser', controller.checkExistingUser);
-router.get('/:id', controller.getUserById);
-router.patch('/:id', controller.updateUser);
-router.delete('/:id', controller.deleteUser);
+router.get('/:id',authenticateJWT, controller.getUserById);
+router.patch('/:id',authenticateJWT, controller.updateUser);
+router.delete('/:id',authenticateJWT, controller.deleteUser);
 
 module.exports = router;

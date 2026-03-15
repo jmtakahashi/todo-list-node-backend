@@ -65,7 +65,7 @@ afterAll(async () => {
 /* POST /users/checkExistingUser - uses email */
 describe('POST /users/checkExistingUser', () => {
   test('Check for an existing user with email returns true', async () => {
-    const response = await request(app).post('/users/checkExistingUser').set('Authorization', `Bearer ${testUserAccessToken}`).send({
+    const response = await request(app).post('/users/checkExistingUser').send({
       email: 'test@test.com',
     });
 
@@ -74,7 +74,7 @@ describe('POST /users/checkExistingUser', () => {
   });
 
   test('Check for an existing user with non-existent email returns false', async () => {
-    const response = await request(app).post('/users/checkExistingUser').set('Authorization', `Bearer ${testUserAccessToken}`).send({
+    const response = await request(app).post('/users/checkExistingUser').send({
         email: 'nonexistent@test.com',
     });
 
@@ -83,7 +83,7 @@ describe('POST /users/checkExistingUser', () => {
   });
 
   test('Check for an existing user with missing data returns 400', async () => {
-    const response = await request(app).post('/users/checkExistingUser').set('Authorization', `Bearer ${testUserAccessToken}`).send({
+    const response = await request(app).post('/users/checkExistingUser').send({
         // empty body
     });
 
@@ -92,7 +92,7 @@ describe('POST /users/checkExistingUser', () => {
   });
 
   test('Check for an existing user with empty email value returns 400', async () => {
-    const response = await request(app).post('/users/checkExistingUser').set('Authorization', `Bearer ${testUserAccessToken}`).send({
+    const response = await request(app).post('/users/checkExistingUser').send({
         email: '',
     });
     
@@ -101,7 +101,7 @@ describe('POST /users/checkExistingUser', () => {
   });
 
   test('Check for an existing user with malformed email value returns 400', async () => {
-    const response = await request(app).post('/users/checkExistingUser').set('Authorization', `Bearer ${testUserAccessToken}`).send({
+    const response = await request(app).post('/users/checkExistingUser').send({
         email: ['notanemail'],
     });
 
