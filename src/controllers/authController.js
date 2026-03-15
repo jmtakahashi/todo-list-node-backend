@@ -80,7 +80,8 @@ const loginUser = async function (req, res, next) {
     // error could be invalid email (user not found) or invalid password (user found but password does not match)
     // either way we do not let the front end know which one is incorrect for security reasons, we just return a generic "Invalid credentials" message
     if (!response.user) {
-      console.log('in authController.loginUser. login error: ', response.message)
+      // log below to see the actual error message from the model
+      // console.log('in authController.loginUser. login error: ', response.message)
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

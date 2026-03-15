@@ -14,13 +14,13 @@ function User(username, email, password) {
 /* create a new user in the database */
 User.register = async function (username, email, password) {
   // cleanup
+  if (typeof email !== 'string') { return { error: 'Invalid email address.' }; }
+  if (typeof username !== 'string') { return { error: 'Invalid username.' }; }
+  if (typeof password !== 'string') { return { error: 'Invalid password.' }; }
+
   email = email.trim().toLowerCase();
   username = username.trim().toLowerCase();
   password = password.trim();
-
-  if (typeof email !== 'string') {email = ''}
-  if (typeof username !== 'string') {username = ''}
-  if (typeof password !== 'string') {password = ''}
 
   // validate
   if (email === '' ) { return { error: 'Please provide an email address.' }; }
@@ -85,11 +85,11 @@ User.register = async function (username, email, password) {
 /* retrieve a user by email and validate credentials */
 User.login = async function (email, password) {
   // cleanup
-  email = email.trim().toLowerCase();
-  password = password.trim();
-
   if (typeof email !== 'string') { return { error: 'Invalid credentials.' }; }
   if (typeof password !== 'string') { return { error: 'Invalid credentials.' }; }
+
+  email = email.trim().toLowerCase();
+  password = password.trim();
 
   try {
     const db = await connectDB();
@@ -126,8 +126,8 @@ User.logout = async function() {
 /* retrieve a user by id - does NOT return password */
 User.getUserById = async function (userId) {
   // cleanup
-  userId = userId.trim();
   if (typeof userId !== 'string') { userId = ''; }
+  userId = userId.trim();
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -150,8 +150,8 @@ User.getUserById = async function (userId) {
 /* retrieve a user by email - does NOT return password */
 User.getUserByEmail = async function (email) {
   // cleanup
+  if (typeof email !== 'string') { return { error: 'Invalid email address.' }; }
   email = email.trim().toLowerCase();
-  if (typeof email !== 'string') { email = ''; }
 
   // validate
   if (email !== '' && !validator.isEmail(email)) {
@@ -186,35 +186,66 @@ User.updateUser = async function (userId, updatedFields) {
     }
   });
 
+  // if no fields left after cleaning, return error
+
   // get the sent fields out of updatedFields for validation and cleanup
   let { username, password } = updatedFields;
- 
-  // cleanup
+
+  // cleanup userId
+  if (typeof userId !== 'string') {
+    return { error: 'Invalid id' };
+  }
   userId = userId.trim();
-  username = username.trim().toLowerCase();
-  password = password.trim();
 
-  if (typeof userId !== 'string') { return { error: 'Invalid id' }; }  
-  if (typeof username !== 'string') { return { error: 'Invalid username value' } }  
-  if (typeof password !== 'string') { return { error: 'Invalid password value' } }
+  const fieldsToUpdate = { };
 
-  if (!USERNAME_REGEX.test(username)) {
-    return {
-      error:
-        'Invalid username format. Username must be 4-30 characters long and can only contain letters, numbers, underscores, and hyphens.',
-    };
+  // if a username field is provided
+  if (username) {
+    if (typeof username !== 'string') {
+      return { error: 'Invalid username' };
+    }
+
+    if (username === '') {
+      return { error: 'Please provide a username.' };
+    }
+    
+    username = username.trim().toLowerCase();
+
+    if (!USERNAME_REGEX.test(username)) {
+      return {
+        error:
+          'Invalid username format. Username must be 3-30 characters long and can only contain letters, numbers, underscores, and hyphens.',
+      };
+    }
+
+    // add username to our fieldsToUpdate object since it passed validation
+    fieldsToUpdate["username"] = username;
   }
 
-  if (!PASSWORD_REGEX.test(password)) {
-    return {
-      error:
-        'Invalid password format. Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    };
+  // if a password field is provided
+  if (password) {
+    if (typeof password !== 'string') {
+      return { error: 'Invalid password' };
+    }
+
+    if (password === '') {
+      return { error: 'Please provide a password.' };
+    }
+
+    password = password.trim();
+
+    if (!PASSWORD_REGEX.test(password)) {
+      return {
+        error:
+          'Invalid password format. Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+      };
+    
+    }
+    password = await User.hashPassword(password);
+
+    // add password to our fieldsToUpdate object since it passed validation
+    fieldsToUpdate["password"] = password;
   }
-
-  password = await User.hashPassword(password);
-
-  const fieldsToUpdate = { username, password };
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -260,7 +291,7 @@ User.updateUser = async function (userId, updatedFields) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
-};
+};;
 
 /* remove a user from the database */
 User.deleteUser = async function (userId) {
@@ -286,7 +317,7 @@ User.deleteUser = async function (userId) {
     }
 
     if (response.deletedCount === 0) {
-      return { deletedCount: 0, message: 'User not found' };
+      return { deletedCount: response.deletedCount, message: 'User not found' };
     }
 
     return {

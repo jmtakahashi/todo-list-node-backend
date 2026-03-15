@@ -52,7 +52,7 @@ const addTodo = async (req, res, next) => {
     
     // successful response will be { response, newTodo: { _id: response.insertedId, task, completed, dateAdded, owner }, message: 'Todo created successfully' };
     const { newTodo, message} = response;
-    return res.status(200).json({ newTodo, message});
+    return res.status(201).json({ newTodo, message});
   } catch (error) {
     next(error);
   }

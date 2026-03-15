@@ -13,8 +13,8 @@ function Todo (title, completed, createdAt, updatedAt, owner) {
 
 /* retrieve all todos for a specific user from the db */
 Todo.getAllTodos = async function (ownerId) {
-  ownerId = ownerId.trim();
   if (typeof ownerId !== 'string') { ownerId = ''; }
+  ownerId = ownerId.trim();
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -33,11 +33,11 @@ Todo.getAllTodos = async function (ownerId) {
 /* create a new todo in the database */
 Todo.createTodo = async function (task, ownerId) {
   // TODO: validate and sanitize inputs (task, ownerId)
+  if (typeof ownerId !== 'string') { ownerId = ''; }
+  if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
+
   ownerId = ownerId.trim();
   task = task.trim();
-
-  if (typeof ownerId !== 'string') { ownerId = ''; }
-  if (typeof task !== 'string') { task = ''; }
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -92,20 +92,39 @@ Todo.updateTodo = async function (todoId, updatedFields) {
     }
   });
 
+  // if no fields left after cleaning, return error
+
   // get the sent fields out of updatedFields for validation and cleanup
   let { task, completed } = updatedFields;
 
   // cleanup
+  if (typeof todoId !== 'string') {
+    return { error: 'Invalid id' };
+  }
   todoId = todoId.trim();
-  task = task.trim();
 
-  if (typeof todoId !== 'string') { return { error: 'Invalid id' } }
-  if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
-  if (typeof completed !== 'boolean') { return { error: 'Invalid completed value' }; }
-  
+  const fieldsToUpdate = { };
+
+  // if completed field is provided
+  if (completed) {
+    if (typeof completed !== 'boolean') {
+      return { error: 'Invalid completed value' };
+    }
+
+    fieldsToUpdate["completed"] = completed;
+  }
+
+  // if task field is provided
+  if (task) {
+    if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
+    task = task.trim();
+
+    fieldsToUpdate["task"] = task;
+  }
+
   const dateUpdated = new Date();
 
-  const fieldsToUpdate = { task, completed, dateUpdated };
+  fieldsToUpdate["dateUpdated"] = dateUpdated;
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
