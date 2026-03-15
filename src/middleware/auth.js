@@ -36,7 +36,7 @@ const authenticateRefreshToken = (req, res, next) => {
     req.user = { id };
     return next();
   } catch (err) {
-    console.error('In authenticateRefreshToken error:'.red, err.message);
+    // console.error('In authenticateRefreshToken error:'.red, err.message);
     // handle the error here and do NOT pass on to the next handler
     return res.status(403).json({ message: 'Forbidden. Invalid or expired refresh token.' });
   }
