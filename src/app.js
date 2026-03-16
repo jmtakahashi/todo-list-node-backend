@@ -13,6 +13,7 @@ const { NotFoundError } = require('./utils/expressError');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const todoRoutes = require('./routes/todos');
+const debugRoutes = require('./routes/debug');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/todos', todoRoutes);
+app.use('/debug', debugRoutes);
 
 // so we don't get the "not found" error in our console for the favicon
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
