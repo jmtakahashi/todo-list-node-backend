@@ -27,6 +27,7 @@ const authenticateRefreshToken = (req, res, next) => {
     const refreshToken = req.cookies.refreshToken; // Get the refresh token from the cookie
 
     if (!refreshToken) {
+      console.error('In authenticateRefreshToken error:'.red, 'No refresh token provided.');
       return res
         .status(401)
         .json({ message: 'Unauthorized. No refresh token provided.' });
@@ -36,7 +37,7 @@ const authenticateRefreshToken = (req, res, next) => {
     req.user = { id };
     return next();
   } catch (err) {
-    // console.error('In authenticateRefreshToken error:'.red, err.message);
+    console.error('In authenticateRefreshToken error:'.red, err.message);
     // handle the error here and do NOT pass on to the next handler
     return res.status(403).json({ message: 'Forbidden. Invalid or expired refresh token.' });
   }

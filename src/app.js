@@ -13,6 +13,7 @@ const { NotFoundError } = require('./utils/expressError');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const todoRoutes = require('./routes/todos');
+const debugRoutes = require('./routes/debug');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/todos', todoRoutes);
+app.use('/debug', debugRoutes);
 
 // so we don't get the "not found" error in our console for the favicon
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
@@ -45,13 +47,17 @@ app.use(function (req, res, next) {
 /** Generic error handler; anything unhandled goes here. */
 // express knows that a function is an error handler because the function has 4 params
 app.use(function (err, req, res, next) {
-  // console.log('hit the generic app.use() error handler'.brightCyan);
+  console.log('hit the generic app.use() error handler'.brightCyan);
+  console.log('ERROR ON:'.brightCyan, req.method, req.originalUrl);
+  console.log('Request Headers:'.brightCyan, req.headers);
+  console.log('Request Body:'.brightCyan, req.body);
+  console.log('Request Query:'.brightCyan, req.query);
   if (process.env.NODE_ENV !== 'test') console.error(err.stack);
 
   const status = err.status || 500;
   const message = err.message;
 
-  // console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
+  console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
 
   return res.status(status).json({ error: message });
 });
