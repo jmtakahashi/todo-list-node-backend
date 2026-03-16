@@ -3,17 +3,9 @@ const cookieOptions = require('../config/cookieOptions');
 
 const router = express.Router();
 
-router.get("/get-cookie-same-site-none", (req, res) => {
+router.get("/get-cookie", (req, res) => {
   return res
     .cookie('testCookie', 'testValue', cookieOptions)
-    .json({
-      message: 'cookie set',
-    });
-});
-
-router.get("/get-cookie-same-site-strict", (req, res) => {
-  return res
-    .cookie('testCookie', 'testValue', {...cookieOptions, sameSite: 'Strict'})
     .json({
       message: 'cookie set',
     });
