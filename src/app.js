@@ -53,6 +53,7 @@ app.use(function (err, req, res, next) {
   const status = err.status || 500;
   const message = err.message;
 
+  console.log('ERROR ON:'.brightCyan, req.method, req.originalUrl);
   console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
 
   return res.status(status).json({ error: message });
