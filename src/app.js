@@ -47,13 +47,13 @@ app.use(function (req, res, next) {
 /** Generic error handler; anything unhandled goes here. */
 // express knows that a function is an error handler because the function has 4 params
 app.use(function (err, req, res, next) {
-  // console.log('hit the generic app.use() error handler'.brightCyan);
+  console.log('hit the generic app.use() error handler'.brightCyan);
   if (process.env.NODE_ENV !== 'test') console.error(err.stack);
 
   const status = err.status || 500;
   const message = err.message;
 
-  // console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
+  console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
 
   return res.status(status).json({ error: message });
 });
