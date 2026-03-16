@@ -10,6 +10,11 @@ const cookieParser = require('cookie-parser');
 const corsOptions = require('./config/corsOptions');
 const { NotFoundError } = require('./utils/expressError');
 
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const todoRoutes = require('./routes/todos');
+const debugRoutes = require('./routes/debug');
+
 const app = express();
 
 app.use(cors(corsOptions));
@@ -17,11 +22,6 @@ app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const todoRoutes = require('./routes/todos');
-const debugRoutes = require('./routes/debug');
 
 // router routes
 app.use('/auth', authRoutes);
