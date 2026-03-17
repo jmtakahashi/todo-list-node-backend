@@ -49,6 +49,9 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
   console.log('hit the generic app.use() error handler'.brightCyan);
   console.log('ERROR ON:'.brightCyan, req.method, req.originalUrl);
+  console.log('Request Headers:'.brightCyan, req.headers);
+  console.log('Request Body:'.brightCyan, req.body);
+  console.log('Request Query:'.brightCyan, req.query);
   if (process.env.NODE_ENV !== 'test') console.error(err.stack);
 
   const status = err.status || 500;
