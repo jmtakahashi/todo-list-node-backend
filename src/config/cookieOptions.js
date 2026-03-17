@@ -1,6 +1,7 @@
 const { path } = require("../app");
 
 const cookieOptions = {
+  domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : 'localhost',
   httpOnly: true,
   secure: process.env.NODE_ENV === 'test' ? false : true,
   sameSite: 'none', // Allow cross-site cookies (required for secure cookies)
