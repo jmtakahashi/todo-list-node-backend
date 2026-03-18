@@ -93,9 +93,9 @@ Todo.updateTodo = async function (todoId, updatedFields) {
   });
 
   // if no fields left after cleaning, return error
-
-  // get the sent fields out of updatedFields for validation and cleanup
-  let { task, completed } = updatedFields;
+  if (Object.keys(updatedFields).length === 0) {
+    return { error: 'No valid fields provided for update' };
+  }
 
   // cleanup
   if (typeof todoId !== 'string') {
@@ -106,20 +106,20 @@ Todo.updateTodo = async function (todoId, updatedFields) {
   const fieldsToUpdate = { };
 
   // if completed field is provided
-  if (completed) {
-    if (typeof completed !== 'boolean') {
+  if (Object.keys(updatedFields).includes('completed')) {
+    if (typeof updatedFields.completed !== 'boolean') {
       return { error: 'Invalid completed value' };
     }
 
-    fieldsToUpdate["completed"] = completed;
+    fieldsToUpdate["completed"] = updatedFields.completed;
   }
 
   // if task field is provided
-  if (task) {
-    if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
-    task = task.trim();
+  if (Object.keys(updatedFields).includes('task')) {
+    if (typeof updatedFields.task !== 'string') { return { error: 'Invalid task value' }; }
+    updatedFields.task = updatedFields.task.trim();
 
-    fieldsToUpdate["task"] = task;
+    fieldsToUpdate["task"] = updatedFields.task;
   }
 
   const dateUpdated = new Date();

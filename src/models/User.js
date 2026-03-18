@@ -187,9 +187,9 @@ User.updateUser = async function (userId, updatedFields) {
   });
 
   // if no fields left after cleaning, return error
-
-  // get the sent fields out of updatedFields for validation and cleanup
-  let { username, password } = updatedFields;
+  if (Object.keys(updatedFields).length === 0) { 
+    return { error: 'No valid fields provided for update' };
+  }
 
   // cleanup userId
   if (typeof userId !== 'string') {
@@ -200,18 +200,18 @@ User.updateUser = async function (userId, updatedFields) {
   const fieldsToUpdate = { };
 
   // if a username field is provided
-  if (username) {
-    if (typeof username !== 'string') {
+  if (Object.keys(updatedFields).includes('username')) {
+    if (typeof updatedFields.username !== 'string') {
       return { error: 'Invalid username' };
     }
 
-    if (username === '') {
+    if (updatedFields.username === '') {
       return { error: 'Please provide a username.' };
     }
-    
-    username = username.trim().toLowerCase();
 
-    if (!USERNAME_REGEX.test(username)) {
+    updatedFields.username = updatedFields.username.trim().toLowerCase();
+
+    if (!USERNAME_REGEX.test(updatedFields.username)) {
       return {
         error:
           'Invalid username format. Username must be 3-30 characters long and can only contain letters, numbers, underscores, and hyphens.',
@@ -219,32 +219,32 @@ User.updateUser = async function (userId, updatedFields) {
     }
 
     // add username to our fieldsToUpdate object since it passed validation
-    fieldsToUpdate["username"] = username;
+    fieldsToUpdate['username'] = updatedFields.username;
   }
 
   // if a password field is provided
-  if (password) {
-    if (typeof password !== 'string') {
+  if (Object.keys(updatedFields).includes('password')) {
+    if (typeof updatedFields.password !== 'string') {
       return { error: 'Invalid password' };
     }
 
-    if (password === '') {
+    if (updatedFields.password === '') {
       return { error: 'Please provide a password.' };
     }
 
-    password = password.trim();
+    updatedFields.password = updatedFields.password.trim();
 
-    if (!PASSWORD_REGEX.test(password)) {
+    if (!PASSWORD_REGEX.test(updatedFields.password)) {
       return {
         error:
           'Invalid password format. Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
       };
     
     }
-    password = await User.hashPassword(password);
+    updatedFields.password = await User.hashPassword(updatedFields.password);
 
     // add password to our fieldsToUpdate object since it passed validation
-    fieldsToUpdate["password"] = password;
+    fieldsToUpdate["password"] = updatedFields.password;
   }
 
   try {
