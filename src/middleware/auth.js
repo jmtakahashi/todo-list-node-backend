@@ -15,10 +15,10 @@ const authenticateJWT = (req, res, next) => {
     const { id, username } = jwt.verify(accessToken, ACCESS_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
     req.user = { id, username };
     return next();
-  } catch (err) {
-    console.error('In authenticateJWT error:'.red, err.message);
+  } catch (error) {
+    console.error('In authenticateJWT error:'.red, error.message);
     // handle the error here and do NOT pass on to the next handler
-    return res.status(403).json({ message: 'Forbidden. Invalid or expired accesstoken.' });
+    return res.status(403).json({ message: 'Forbidden. Invalid or expired access token.' });
   }
 };
 
@@ -36,8 +36,8 @@ const authenticateRefreshToken = (req, res, next) => {
     const { id } = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
     req.user = { id };
     return next();
-  } catch (err) {
-    console.error('In authenticateRefreshToken error:'.red, err.message);
+  } catch (error) {
+    console.error('In authenticateRefreshToken error:'.red, error.message);
     // handle the error here and do NOT pass on to the next handler
     return res.status(403).json({ message: 'Forbidden. Invalid or expired refresh token.' });
   }
