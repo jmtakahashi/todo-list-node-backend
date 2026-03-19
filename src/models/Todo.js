@@ -30,6 +30,25 @@ Todo.getAllTodos = async function (ownerId) {
   }
 };
 
+/* retrieve a single todo by its id */
+Todo.getTodoById = async function (todoId) {
+  if (typeof todoId !== 'string') { todoId = ''; }
+  todoId = todoId.trim();
+
+  try {
+    const db = await connectDB(); // ✅ make sure connection is ready
+    const todosCollection = db.collection('todos');
+    const todo = await todosCollection.find({ todoId }).toArray();
+
+    // todo will be a todo object if found, or null if not found
+    
+    return { todo };
+  } catch (err) {
+    console.error('❌ Mongo error:', err);
+    throw err; // re-throw the error to be caught by the controller's try-catch
+  }
+};
+
 /* create a new todo in the database */
 Todo.createTodo = async function (task, ownerId) {
   // TODO: validate and sanitize inputs (task, ownerId)

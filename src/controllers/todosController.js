@@ -59,7 +59,7 @@ const addTodo = async (req, res, next) => {
 };
 
 /* update an existing todo for the authenticated user */
-const updateTodo = async (req, res, next) => { 
+const updateTodo = async (req, res, next) => {
   if (!req.body || !(req.body.task || req.body.completed)) {
     return res.status(400).json({ message: 'Updated fields required' });
   }
@@ -67,7 +67,24 @@ const updateTodo = async (req, res, next) => {
   const todoId = req.params.id;
   const updatedFields = req.body; // { task: "Updated title", completed: true }
 
+  // req.user will have the decode token payload, we should get the user by params,
+  // but check the id against the decoded token for authorization
+
+  const jwtUserId = req.user.id;
+
   try {
+    const { todo } = await Todo.getTodoById(todoId);
+
+    if (!todo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    if (jwtUserId !== todo.ownerId) {
+      return res
+        .status(403)
+        .json({ message: 'Forbidden.  You are not authorized.' });
+    }
+
     const response = await Todo.updateTodo(todoId, updatedFields);
 
     if (!response) {
@@ -80,7 +97,7 @@ const updateTodo = async (req, res, next) => {
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
-    
+
     if (response.matchedCount === 0) {
       return res.status(404).json({ message: response.message });
     }
@@ -95,14 +112,31 @@ const updateTodo = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-
-};
+};;
 
 /* delete an existing todo for the authenticated user */
 const deleteTodo = async (req, res, next) => {
   const todoId = req.params.id;
 
+  // req.user will have the decode token payload, we should get the user by params,
+  // but check the id against the decoded token for authorization
+
+  const jwtUserId = req.user.id;
+
   try {
+    // make sure the todo exists and belongs to the authenticated user before trying to delete
+    const { todo } = await Todo.getTodoById(todoId);
+
+    if (!todo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    if (jwtUserId !== todo.ownerId) {
+      return res
+        .status(403)
+        .json({ message: 'Forbidden.  You are not authorized.' });
+    }
+
     const response = await Todo.deleteTodo(todoId);
 
     if (!response) {
@@ -115,17 +149,17 @@ const deleteTodo = async (req, res, next) => {
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
-    
+
     // response will contain a message about the delete result (e.g., not found or success)
     if (response.deletedCount === 0) {
-      return res.status(404).json({ message: response.message});
+      return res.status(404).json({ message: response.message });
     }
 
     return res.status(200).json({ message: response.message });
   } catch (error) {
     next(error);
   }
-};
+};;
 
 module.exports = {
   getAllTodos,
