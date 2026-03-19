@@ -36,10 +36,21 @@ const checkExistingUser = async function (req, res, next) {
 };
 
 const getUserById = async function (req, res, next) {
-  const id = req.params.id;
+  const userId = req.params.id;
+
+  // req.user will have the decode token payload, we should get the user by params,
+  // but check the id against the decoded token for authorization
+
+  const jwtUserId = req.user.id;
+
+  if (jwtUserId !== userId) {
+    return res
+      .status(403)
+      .json({ message: 'Forbidden.  You are not authorized.' });
+  }
 
   try {
-    const response = await User.getUserById(id);
+    const response = await User.getUserById(userId);
 
     if (!response) {
       return res
@@ -51,7 +62,7 @@ const getUserById = async function (req, res, next) {
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
-    
+
     if (!response.user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -62,7 +73,7 @@ const getUserById = async function (req, res, next) {
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
-};
+};;
 
 /* update an existing user */
 const updateUser = async function (req, res, next) {
@@ -70,11 +81,23 @@ const updateUser = async function (req, res, next) {
     return res.status(400).json({ message: 'Updated fields required' });
   }
 
-  const id = req.params.id;
+  const userId = req.params.id;
   const updatedFields = req.body; // ex. { username: "newUsername", password: "newPassword" }
 
+
+  // req.user will have the decode token payload, we should get the user by params,
+  // but check the id against the decoded token for authorization
+
+  const jwtUserId = req.user.id
+
+  if (jwtUserId !== userId) {
+    return res
+      .status(403)
+      .json({ message: 'Forbidden.  You are not authorized.' });
+  }
+
   try {
-    const response = await User.updateUser(id, updatedFields);
+    const response = await User.updateUser(userId, updatedFields);
 
     if (!response) {
       return res
@@ -107,6 +130,17 @@ const updateUser = async function (req, res, next) {
 const deleteUser = async function (req, res, next) {
   const userId = req.params.id;
 
+  // req.user will have the decode token payload, we should get the user by params,
+  // but check the id against the decoded token for authorization
+
+  const jwtUserId = req.user.id;
+
+  if (jwtUserId !== userId) {
+    return res
+      .status(403)
+      .json({ message: 'Forbidden.  You are not authorized.' });
+  }
+
   try {
     const response = await User.deleteUser(userId);
 
@@ -120,7 +154,7 @@ const deleteUser = async function (req, res, next) {
     if (response.error) {
       return res.status(400).json({ message: response.error });
     }
-    
+
     if (response.deletedCount === 0) {
       return res.status(404).json({ message: response.message });
     }
@@ -129,7 +163,7 @@ const deleteUser = async function (req, res, next) {
   } catch (error) {
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
-};
+};;
 
 module.exports = {
   checkExistingUser,
