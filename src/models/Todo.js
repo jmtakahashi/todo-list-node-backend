@@ -35,10 +35,12 @@ Todo.getTodoById = async function (todoId) {
   if (typeof todoId !== 'string') { todoId = ''; }
   todoId = todoId.trim();
 
+  console.log(todoId)
+
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
-    const todo = await todosCollection.find({ todoId }).toArray();
+    const todo = await todosCollection.findOne({ _id: new ObjectId(todoId) });
 
     // todo will be a todo object if found, or null if not found
     

@@ -74,7 +74,7 @@ const updateTodo = async (req, res, next) => {
 
   try {
     const { todo } = await Todo.getTodoById(todoId);
-
+    
     if (!todo) {
       return res.status(404).json({ message: 'Todo not found' });
     }
