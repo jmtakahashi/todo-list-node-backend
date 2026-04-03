@@ -2,7 +2,6 @@
 
 const { MongoClient } = require("mongodb");
 const { getDatabaseUri, getDatabaseName } = require("./config");
-const { get } = require("../app");
 
 const client = new MongoClient(getDatabaseUri());
 

@@ -1,5 +1,3 @@
-const { path } = require("../app");
-
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'test' ? false : true,
