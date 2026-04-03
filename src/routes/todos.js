@@ -5,10 +5,12 @@ const { requireLoggedIn, requireCorrectUser } = require('../middleware/auth');
 const router = express.Router({ mergeParams: true });
 
 router.use(requireLoggedIn);
+router.use(requireCorrectUser);
 
-router.get('/', requireCorrectUser, todosController.getAllTodosByList);
+router.get('/', todosController.getAllTodosByList);
+router.get('/:todoId', todosController.getSingleTodo);
 router.post('/', todosController.createTodo);
-router.patch('/:todoId', requireCorrectUser, todosController.updateTodo);
-router.delete('/:todoId', requireCorrectUser, todosController.deleteTodo);
+router.patch('/:todoId', todosController.updateTodo);
+router.delete('/:todoId', todosController.deleteTodo);
 
 module.exports = router;

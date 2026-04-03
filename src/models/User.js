@@ -6,10 +6,12 @@ const validator = require('validator');
 const { USERNAME_REGEX, PASSWORD_REGEX } = require('../utils/regex');
 
 
-function User(username, email, password) {
+function User(username, email, password, createdAt, updatedAt) {
   this.username = username;
   this.email = email;
   this.password = password;
+  this.createdAt = createdAt;
+  this.updatedAt = updatedAt;
 };
 
 
@@ -79,9 +81,9 @@ User.register = async function (username, email, password) {
     */
 
     return { _id: response.insertedId, message: 'User registered successfully.' };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
@@ -116,9 +118,9 @@ User.login = async function (email, password) {
     delete user.password; // remove password before returning the user object (for security reasons)
 
     return { user, message: 'Login successful.' };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
@@ -129,22 +131,24 @@ User.logout = async function () {
 };
 
 
+/* GET all users - does NOT return passwords */
 User.getAllUsers = async function () {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
+
     const usersCursor = await usersCollection.find({}, { projection: { password: 0 } }); // exclude password field
     const users = await usersCursor.toArray();
 
     return { users };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* retrieve a user by id - does NOT return password */
+/* GET a user by id - does NOT return password */
 User.getUserById = async function (userId) {
   // cleanup
   if (typeof userId !== 'string') {
@@ -156,6 +160,7 @@ User.getUserById = async function (userId) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
+
     const user = await usersCollection.findOne(
       { _id: new ObjectId(userId) },
       { projection: { password: 0 } },
@@ -168,14 +173,14 @@ User.getUserById = async function (userId) {
     }
 
     return { user };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* retrieve a user by email - does NOT return password */
+/* GET a user by email - does NOT return password */
 User.getUserByEmail = async function (email) {
   // cleanup
   if (typeof email !== 'string') { return { error: 'Invalid email address.' }; }
@@ -190,6 +195,7 @@ User.getUserByEmail = async function (email) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
+
     const user = await usersCollection.findOne(
       { email },
       { projection: { password: 0 } },
@@ -202,14 +208,14 @@ User.getUserByEmail = async function (email) {
     }
 
     return { user };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* update a user in the database */
+/* UPDATE a user in the database */
 User.updateUser = async function (userId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['username', 'password'];
@@ -283,6 +289,7 @@ User.updateUser = async function (userId, updatedFields) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
+
     const response = await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       { $set: fieldsToUpdate },
@@ -319,14 +326,14 @@ User.updateUser = async function (userId, updatedFields) {
       modifiedCount: response.modifiedCount,
       message: 'User updated successfully.',
     };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* remove a user from the database */
+/* DELETE a user from the database */
 User.deleteUser = async function (userId) {
   userId = userId.trim();
   if (typeof userId !== 'string') { userId = ''; }
@@ -334,6 +341,7 @@ User.deleteUser = async function (userId) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
+    
     const response = await usersCollection.deleteOne({ _id: new ObjectId(userId) });
 
     /*
@@ -357,9 +365,9 @@ User.deleteUser = async function (userId) {
       deletedCount: response.deletedCount,
       message: 'User deleted successfully.',
     };
-  } catch (err) {
-    console.error('❌ Mongo error:', err);
-    throw err; // re-throw the error to be caught by the controller's try-catch
+  } catch (error) {
+    console.error('❌ Mongo error:', error);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 

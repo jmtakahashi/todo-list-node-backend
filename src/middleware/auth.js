@@ -96,5 +96,5 @@ module.exports = {
   authenticateRefreshToken,
   requireLoggedIn,
   requireCorrectUser,
-  requireAdmin
+  requireAdmin,
 };
