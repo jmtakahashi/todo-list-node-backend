@@ -1,14 +1,14 @@
 const express = require('express');
-const controller = require('../controllers/todosController');
-const { authenticateJWT } = require('../middleware/auth');
+const todosController = require('../controllers/todosController');
+const { requireLoggedIn, requireCorrectUser } = require('../middleware/auth');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.use(authenticateJWT); // check for valid JWT and attach user to req if valid
+router.use(requireLoggedIn);
 
-router.get('/', controller.getAllTodos);
-router.post('/', controller.addTodo);
-router.patch('/:id', controller.updateTodo);
-router.delete('/:id', controller.deleteTodo);
+router.get('/', requireCorrectUser, todosController.getAllTodosByList);
+router.post('/', todosController.createTodo);
+router.patch('/:todoId', requireCorrectUser, todosController.updateTodo);
+router.delete('/:todoId', requireCorrectUser, todosController.deleteTodo);
 
 module.exports = router;

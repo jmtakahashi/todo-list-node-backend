@@ -1,41 +1,62 @@
 const { connectDB } = require('../config/db');
-const User = require('./User');
 const { ObjectId } = require('mongodb');
 const validator = require('validator');
 
-function Todo (title, completed, createdAt, updatedAt, owner) {
+function Todo (title, completed, createdAt, updatedAt, ownerId, listId) {
     this.title = title;
     this.completed = completed;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.owner = owner;
+    this.ownerId = ownerId;
+    this.listId = listId;
 }
 
 /* retrieve all todos for a specific user from the db */
-Todo.getAllTodos = async function (ownerId) {
+Todo.getAllTodosByUser = async function (ownerId) {
   if (typeof ownerId !== 'string') { ownerId = ''; }
   ownerId = ownerId.trim();
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
-    const response = await todosCollection.find({ ownerId }).toArray();
+    const todos = await todosCollection.find({ ownerId }).toArray();
 
-    // response will be an array of todo objects (can be empty if user has no todos)
+    // todos will be an array of todo objects (can be empty if user has no todos)
 
-    return { todos: response };
+    return { todos };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
 };
 
+
+/* retrieve all todos for a specific user and list from the db */
+Todo.getAllTodosByList = async function (listId) {
+  if (typeof listId !== 'string') {
+    listId = '';
+  }
+  listId = listId.trim();
+
+  try {
+    const db = await connectDB(); // ✅ make sure connection is ready
+    const todosCollection = db.collection('todos');
+    const todos = await todosCollection.find({ listId }).toArray();
+
+    // todos will be an array of todo objects (can be empty if user has no todos)
+
+    return { todos };
+  } catch (err) {
+    console.error('❌ Mongo error:', err);
+    throw err; // re-throw the error to be caught by the controller's try-catch
+  }
+};
+
+
 /* retrieve a single todo by its id */
 Todo.getTodoById = async function (todoId) {
   if (typeof todoId !== 'string') { todoId = ''; }
   todoId = todoId.trim();
-
-  console.log(todoId)
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
@@ -51,12 +72,15 @@ Todo.getTodoById = async function (todoId) {
   }
 };
 
+
 /* create a new todo in the database */
-Todo.createTodo = async function (task, ownerId) {
+Todo.createTodo = async function (task, listId, ownerId) {
   // TODO: validate and sanitize inputs (task, ownerId)
+  if (typeof listId !== 'string') { listId = ''; }
   if (typeof ownerId !== 'string') { ownerId = ''; }
   if (typeof task !== 'string') { return { error: 'Invalid task value' }; }
 
+  listId = listId.trim();
   ownerId = ownerId.trim();
   task = task.trim();
 
@@ -64,11 +88,15 @@ Todo.createTodo = async function (task, ownerId) {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
 
-    // ensure ownerId is actually a user in the db
-    const data = await User.getUserById(ownerId);
+    // ensure ownerId is actually a user in the db.  
+    // this is already done with middleware
 
-    if (!data.user) {
-      throw new Error('Invalid ownerId. User not found');
+    // ensure listId is actually a list in the db and belongs to the user
+    const listsCollection = db.collection('lists');
+    const existingList = await listsCollection.findOne({ _id: new ObjectId(listId) });
+
+    if (!existingList) {
+      throw new Error('Invalid listId. List not found');
     }
 
     const newTodo = {
@@ -76,6 +104,7 @@ Todo.createTodo = async function (task, ownerId) {
       completed: false,
       dateAdded: new Date(),
       ownerId,
+      listId,
     };
 
     const response = await todosCollection.insertOne(newTodo);
@@ -106,7 +135,7 @@ Todo.createTodo = async function (task, ownerId) {
 /* update a todo in the databse */
 Todo.updateTodo = async function (todoId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
-  const allowedFields = ['task', 'completed'];
+  const allowedFields = ['task', 'completed', 'listId'];
   Object.keys(updatedFields).forEach((key) => {
     if (!allowedFields.includes(key)) {
       delete updatedFields[key];
@@ -126,7 +155,7 @@ Todo.updateTodo = async function (todoId, updatedFields) {
 
   const fieldsToUpdate = { };
 
-  // if completed field is provided
+  // if "completed" field is provided
   if (Object.keys(updatedFields).includes('completed')) {
     if (typeof updatedFields.completed !== 'boolean') {
       return { error: 'Invalid completed value' };
@@ -135,12 +164,22 @@ Todo.updateTodo = async function (todoId, updatedFields) {
     fieldsToUpdate["completed"] = updatedFields.completed;
   }
 
-  // if task field is provided
+  // if "task" field is provided
   if (Object.keys(updatedFields).includes('task')) {
     if (typeof updatedFields.task !== 'string') { return { error: 'Invalid task value' }; }
     updatedFields.task = updatedFields.task.trim();
 
     fieldsToUpdate["task"] = updatedFields.task;
+  }
+
+  // if "listId" field is provided
+  if (Object.keys(updatedFields).includes('listId')) {
+    if (typeof updatedFields.listId !== 'string') {
+      return { error: 'Invalid listId value' };
+    }
+    updatedFields.listId = updatedFields.listId.trim();
+
+    fieldsToUpdate['listId'] = updatedFields.listId;
   }
 
   const dateUpdated = new Date();
@@ -150,6 +189,17 @@ Todo.updateTodo = async function (todoId, updatedFields) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
+
+    // ensure listId is actually a list in the db and belongs to the user
+    const listsCollection = db.collection('lists');
+    const existingList = await listsCollection.findOne({
+      _id: new ObjectId(fieldsToUpdate.listId),
+    });
+
+    if (!existingList) {
+      throw new Error('Invalid listId. List not found');
+    }
+
     const response = await todosCollection.updateOne(
       { _id: new ObjectId(todoId) },
       { $set: fieldsToUpdate },
@@ -191,7 +241,8 @@ Todo.updateTodo = async function (todoId, updatedFields) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
-};;;
+};
+
 
 /* delete a a todo from the database */
 Todo.deleteTodo = async function (todoId) {

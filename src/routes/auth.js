@@ -1,14 +1,15 @@
 const express = require("express");
-const controller = require("../controllers/authController");
+const authController = require("../controllers/authController");
 const { authenticateRefreshToken } = require("../middleware/auth");
-const debug = require("../middleware/debug");
 const limiter = require("../middleware/loginLimiter");
+const debug = require("../middleware/debug");
 
 const router = express.Router();
 
-router.post("/register", controller.registerUser);
-router.post("/login", limiter, controller.loginUser);
-router.post("/logout", controller.logoutUser);
-router.get('/refresh', debug, authenticateRefreshToken, controller.refreshToken);
+router.post("/register", authController.registerUser);
+router.post("/login", limiter, authController.loginUser);
+router.post("/logout", authController.logoutUser);
+router.get('/refresh', debug, authenticateRefreshToken, authController.refreshAccessToken);
+router.post('/checkExistingUser', authController.checkExistingUser); // checks user existence by email
 
 module.exports = router;

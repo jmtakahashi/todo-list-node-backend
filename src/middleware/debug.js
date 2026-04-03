@@ -7,6 +7,7 @@ const debug = (req, res, next) => {
   console.log('Request Body:'.brightCyan, req.body);
   console.log('Request Query:'.brightCyan, req.query);
   console.log('------------------------'.yellow);
+  
   next();
 };
 

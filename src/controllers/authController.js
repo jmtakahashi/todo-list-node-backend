@@ -2,6 +2,7 @@ const User = require("../models/User");
 const cookieOptions = require("../config/cookieOptions");
 const { generateAccessToken, generateRefreshToken } = require("../services/tokens");
 
+
 /* register a new user */
 const registerUser = async function (req, res, next) {
   if (!req.body || !req.body.username || !req.body.email || !req.body.password) {
@@ -33,6 +34,7 @@ const registerUser = async function (req, res, next) {
     const accessToken = generateAccessToken({
       id: response._id,
       username,
+      isAdmin: false, // new users are not admins by default
     });
 
     const refreshToken = generateRefreshToken({ id: response._id });
@@ -47,10 +49,11 @@ const registerUser = async function (req, res, next) {
         })
     );
   } catch (error) {
-    console.error('In authController registerUser error:', error.message);
+    console.error('In authController.registerUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
+
 
 /* login an existing user */
 const loginUser = async function (req, res, next) {
@@ -88,6 +91,7 @@ const loginUser = async function (req, res, next) {
     const accessToken = generateAccessToken({
       id: response.user._id,
       username: response.user.username,
+      isAdmin: response.user.isAdmin || false, // if isAdmin field is not present, default to false
     });
 
     const refreshToken = generateRefreshToken({ id: response.user._id });
@@ -103,10 +107,11 @@ const loginUser = async function (req, res, next) {
         })
     );
   } catch (error) {
-    console.error('In authController loginUser error:', error.message);
+    console.error('In authController.loginUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
+
 
 /* logout an existing user */
 const logoutUser = async function (req, res, next) {
@@ -117,21 +122,32 @@ const logoutUser = async function (req, res, next) {
     .json({ message: 'Logout successful' });
 };
 
+
 /* refresh an existing user's access token */
 // if refreshToken is valid, issue a new accessToken.
 // middleware already validates the refreshToken 
-// and attaches the decoded payload to req.user
-const refreshToken = async function (req, res, next) {
-  // use the userId from the refresh token to identify the user and issue a new access token
+// and attaches the decoded payload { id } to req.user
+const refreshAccessToken = async function (req, res, next) {
   const userId = req.user.id;
 
   try {
     // check if user exists in the db
     const response = await User.getUserById(userId); // user: { user: userInfo}
 
+    if (!response) {
+      return res
+        .status(500)
+        .json({ error: 'An error occured, please try again.' });
+    }
+
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+
     // if user does not exist, return an error (this should be a rare case since the refresh token is valid, but we check just in case)
     if (!response.user) {
-      return res.status(403).json({ message: 'Forbidden.  User not found.' });
+      return res.status(401).json({ message: response.message });
     }
 
     // if user exists, generate a new access token and send back to the client
@@ -139,7 +155,46 @@ const refreshToken = async function (req, res, next) {
 
     return res.status(200).json({ accessToken });
   } catch (error) {
-    console.error('In refreshToken controller error:'.red, error.message);
+    console.error('In authController.refreshAccessToken: ', error.message);
+    next(error); // Pass the error to the next middleware (e.g., error handler)
+  }
+};
+
+// this endpoint is used during the register process
+const checkExistingUser = async function (req, res, next) {
+  if ( !req.body || !req.body.email) {
+    return res
+      .status(400)
+      .json({ message: 'Email required.' });
+  }
+
+  const { email } = req.body;
+
+  try {
+    const response = await User.getUserByEmail(email);
+
+    if (!response) {
+      return res
+        .status(500)
+        .json({ error: 'An error occured, please try again.' });
+    }
+
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+
+    if (!response.user) {
+      res.json(false); // email does not exist
+    } else {
+      res.json(true); // email exists
+    }
+
+    res.status(200)
+
+    return res; 
+  } catch (error) {
+    console.error('In authController.checkExistingUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
@@ -148,5 +203,6 @@ module.exports = {
   registerUser,
   loginUser,
   logoutUser,
-  refreshToken
+  refreshAccessToken,
+  checkExistingUser
 };
