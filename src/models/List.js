@@ -8,11 +8,12 @@ function List(title, createdAt, updatedAt, ownerId) {
   this.ownerId = ownerId;
 }
 
-/* retrieve all lists for a specific user from the db */
+/* GET all lists for a specific user from the db */
 List.getAllLists = async function (ownerId) {
   if (typeof ownerId !== 'string') {
     ownerId = '';
   }
+
   ownerId = ownerId.trim();
   
   try {
@@ -24,34 +25,40 @@ List.getAllLists = async function (ownerId) {
     return { lists };
   } catch (error) {
     console.error('Error in List.getAllLists:', error.message);
-    throw error; // Rethrow the error to be handled by the caller
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* retrieve a single lists for a specific user from the db */
-List.getSingleList = async function (listId) {
+/* GET a single lists for a specific user from the db */
+List.getSingleList = async function (listId, ownerId) {
   if (typeof listId !== 'string') {
     listId = '';
   }
+  if (typeof ownerId !== 'string') {
+    ownerId = '';
+  }
+  
+  ownerId = ownerId.trim();
   listId = listId.trim();
   
   try {
     const db = await connectDB();
     const listsCollection = db.collection('lists');
-    const list = await listsCollection.findOne({ _id: new ObjectId(listId) });
+
+    const list = await listsCollection.findOne({ _id: new ObjectId(listId), ownerId });
 
     // list will be a list object if found, or null if not found
 
     return { list };
   } catch (error) {
     console.error('Error in List.getSingleList:', error.message);
-    throw error; // Rethrow the error to be handled by the controller's try-catch
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* create a list for the authorized user */
+/* CREATE a list for the authorized user */
 List.createList = async function (title, ownerId) {
   // validate and sanitize inputs (title, ownerId)
   if (typeof ownerId !== 'string') {
@@ -96,13 +103,13 @@ List.createList = async function (title, ownerId) {
     };
   } catch (error) {
     console.error('Error in List.createList:', error.message);
-    throw error; // Rethrow the error to be handled by the controller's try-catch
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* update a list for the authorized user */
-List.updateList = async function (listId, updatedFields) {
+/* UPDATE a list for the authorized user */
+List.updateList = async function (listId, ownerId,updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['title'];
   Object.keys(updatedFields).forEach((key) => {
@@ -121,7 +128,7 @@ List.updateList = async function (listId, updatedFields) {
     listId = '';
   }
   if (typeof updatedFields.title !== 'string') {
-    return { error: 'Invalid list name value' };
+    return { error: 'Invalid list title value.' };
   }
 
   listId = listId.trim();
@@ -130,8 +137,9 @@ List.updateList = async function (listId, updatedFields) {
   try {
     const db = await connectDB();
     const listsCollection = db.collection('lists');
+
     const response = await listsCollection.updateOne(
-      { _id: new ObjectId(listId) },
+      { _id: new ObjectId(listId), ownerId },
       { $set: { ...updatedFields, updatedAt: new Date() } },
     );
 
@@ -146,15 +154,18 @@ List.updateList = async function (listId, updatedFields) {
     return { message: 'List updated successfully' };
   } catch (error) {
     console.error('Error in List.updateList:', error.message);
-    throw error; // Rethrow the error to be handled by the controller's try-catch
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
 
 
-/* delete a list for the authorized user */
-List.deleteList = async function (listId) {
+/* DELETE a list for the authorized user */
+List.deleteList = async function (listId, ownerId) {
   if (typeof listId !== 'string') { listId = ''; }
-  listId = listId.trim()
+  if (typeof ownerId !== 'string') { ownerId = ''; }
+
+  listId = listId.trim();
+  ownerId = ownerId.trim();
 
   try {
     const db = await connectDB();
@@ -162,7 +173,7 @@ List.deleteList = async function (listId) {
 
     // check if list has any todos associated with it
     const todosCollection = db.collection('todos');
-    const associatedTodos = await todosCollection.find({ listId }).toArray();
+    const associatedTodos = await todosCollection.find({ listId, ownerId }).toArray();
 
     if (associatedTodos.length > 0) {
       return { error: 'Cannot delete list containing todos. Please delete the todos or move the todos to another list first.' };
@@ -170,6 +181,7 @@ List.deleteList = async function (listId) {
 
     const response = await listsCollection.deleteOne({
       _id: new ObjectId(listId),
+      ownerId,
     });
 
     /*
@@ -194,9 +206,10 @@ List.deleteList = async function (listId) {
       message: 'List deleted successfully',
     };
   } catch (error) {
-    console.error('❌ Mongo error:', err);
-    throw error; // Rethrow the error to be handled by the controller's try-catch
+    console.error('❌ Mongo error:', error.message);
+    throw error; // Re-throw the error to be caught by the controller's try-catch
   }
 };
+
 
 module.exports = List;

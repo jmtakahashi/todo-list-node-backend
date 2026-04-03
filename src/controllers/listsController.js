@@ -3,9 +3,9 @@ const Todo = require('../models/Todo');
 const { UnauthorizedError, ForbiddenError } = require('../utils/expressError');
 
 
-/* fetch all lists for the authenticated user */
+/* fetch all lists for the authenticated user.  auth middleware checks for correct user. */
 const getAllLists = async (req, res, next) => {
-  const userId = req.user.id
+  const userId = req.params.userId
 
   try {
     const response = await List.getAllLists(userId);
@@ -17,21 +17,22 @@ const getAllLists = async (req, res, next) => {
     }
 
     if (response.lists.length === 0) {
-      return res.status(404).json({ message: 'No lists found' });
+      return res.status(404).json({ message: 'No lists found.' });
     }
     
     res.status(200).json({ lists: response.lists });
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler)
+    next(error); // Pass the error to the error handler middleware
   }
 }
 
-/* fetch single list for the authenticated user */
+/* fetch single list for the authenticated user.  auth middleware checks for correct user. */
 const getSingleList = async (req, res, next) => {
+  const userId = req.params.userId;
   const listId = req.params.listId
 
   try {
-    const response = await List.getSingleList(listId)
+    const response = await List.getSingleList(listId, userId)
 
     if (!response) {
       return res
@@ -40,29 +41,29 @@ const getSingleList = async (req, res, next) => {
     }
 
     if (!response.list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'List not found.' });
     }
 
     const { list } = response;
 
     return res.status(200).json({ list });
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler)
+    next(error); // Pass the error to the error handler middleware
   }
 };
 
 
-/* create a list for the authenticated user */
+/* create a list for the authenticated user.  auth middleware checks for logged-in user. */
 const createList = async (req, res, next) => {
   if (!req.body || !req.body.title) {
-    return res.status(400).json({ message: 'List name is required' });
+    return res.status(400).json({ message: 'List name is required.' });
   }
 
+  const userId = req.params.userId;
   const { title } = req.body
-  const ownerId = req.params.userId
 
   try {
-    const response = await List.createList(title, ownerId);
+    const response = await List.createList(title, userId);
 
     if (!response) {
       return res
@@ -77,24 +78,26 @@ const createList = async (req, res, next) => {
 
     // successful response will be { response, newList: { _id: response.insertedId, title, dateAdded, ownerId }, message: 'Todo created successfully' };
     const { newList, message } = response;
+
     return res.status(201).json({ newList, message });
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler)
+    next(error); // Pass the error to the error handler middleware
   }
 };
 
 
-/* update a list for the authenticated user */
+/* update a list for the authenticated user.  auth middleware checks for correct user. */
 const updateList = async (req, res, next) => {
   if (!req.body || !req.body.title) {
-    return res.status(400).json({ message: 'Updated fields required' });
+    return res.status(400).json({ message: 'Updated fields required.' });
   }
 
+  const userId = req.params.userId;
   const listId = req.params.listId;
   const updatedFields = req.body; // { title: "Updated title" }
 
   try {
-    const response = await List.updateList(listId, updatedFields);
+    const response = await List.updateList(listId, userId, updatedFields);
 
     if (!response) {
       return res
@@ -117,19 +120,21 @@ const updateList = async (req, res, next) => {
 
     // successful response will be { modifiedCount: response.modifiedCount, updatedTodo: {}, message: 'Todo updated successfully' }
     const { message } = response;
+
     return res.status(200).json({ message });
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler)
+    next(error); // Pass the error to the error handler middleware
   }
 };
 
 
-/* delete a list for the authenticated user */
+/* delete a list for the authenticated user.  auth middleware checks for correct user. */
 const deleteList = async (req, res, next) => {
+  const userId = req.params.userId;
   const listId = req.params.listId;
 
   try {
-    const response = await List.deleteList(listId);
+    const response = await List.deleteList(listId, userId);
 
     if (!response) {
       return res
@@ -149,7 +154,7 @@ const deleteList = async (req, res, next) => {
 
     return res.status(200).json({ message: response.message });
   } catch (error) {
-    next(error); // Pass the error to the next middleware (e.g., error handler)
+    next(error); // Pass the error to the error handler middleware
   }
 };
 

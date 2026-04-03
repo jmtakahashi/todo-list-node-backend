@@ -22,7 +22,7 @@ const registerUser = async function (req, res, next) {
 
     // user already exists with the same email, return an error
     if (response.userExists) {
-       return res.status(409).json({ message: 'Email already exists' });
+       return res.status(409).json({ message: 'Email already exists.' });
     }
 
     // errors in data - model returns an error: error message
@@ -49,7 +49,6 @@ const registerUser = async function (req, res, next) {
         })
     );
   } catch (error) {
-    console.error('In authController.registerUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
@@ -85,7 +84,7 @@ const loginUser = async function (req, res, next) {
     if (!response.user) {
       // log below to see the actual error message from the model
       // console.log('in authController.loginUser. login error: ', response.message)
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
     const accessToken = generateAccessToken({
@@ -107,7 +106,6 @@ const loginUser = async function (req, res, next) {
         })
     );
   } catch (error) {
-    console.error('In authController.loginUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
@@ -119,7 +117,7 @@ const logoutUser = async function (req, res, next) {
   return res
     .status(200)
     .clearCookie('refreshToken', cookieOptions) // Clear the refresh token cookie on logout
-    .json({ message: 'Logout successful' });
+    .json({ message: 'Logout successful.' });
 };
 
 
@@ -155,10 +153,10 @@ const refreshAccessToken = async function (req, res, next) {
 
     return res.status(200).json({ accessToken });
   } catch (error) {
-    console.error('In authController.refreshAccessToken: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
+
 
 // this endpoint is used during the register process
 const checkExistingUser = async function (req, res, next) {
@@ -194,10 +192,10 @@ const checkExistingUser = async function (req, res, next) {
 
     return res; 
   } catch (error) {
-    console.error('In authController.checkExistingUser: ', error.message);
     next(error); // Pass the error to the next middleware (e.g., error handler)
   }
 };
+
 
 module.exports = {
   registerUser,

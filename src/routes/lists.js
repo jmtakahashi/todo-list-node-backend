@@ -5,11 +5,12 @@ const { requireLoggedIn, requireCorrectUser } = require('../middleware/auth');
 const router = express.Router({ mergeParams: true });
 
 router.use(requireLoggedIn);
+router.use(requireCorrectUser); // checks that the jwt payload matches the userId in the route params.
 
-router.get('/', requireCorrectUser, listsController.getAllLists);
-router.get('/:listId', requireCorrectUser, listsController.getSingleList);
+router.get('/', listsController.getAllLists);
+router.get('/:listId', listsController.getSingleList);
 router.post('/', listsController.createList);
-router.patch('/:listId',requireCorrectUser,listsController.updateList,);
-router.delete('/:listId', requireCorrectUser, listsController.deleteList,);
+router.patch('/:listId', listsController.updateList,);
+router.delete('/:listId', listsController.deleteList,);
 
 module.exports = router;
