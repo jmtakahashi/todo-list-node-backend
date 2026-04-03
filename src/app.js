@@ -9,11 +9,14 @@ const cookieParser = require('cookie-parser');
 
 const corsOptions = require('./config/corsOptions');
 const { NotFoundError } = require('./utils/expressError');
+const { authenticateJWT } = require('./middleware/auth');
+
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const listRoutes = require('./routes/lists');
 const todoRoutes = require('./routes/todos');
-const debugRoutes = require('./routes/debug');
+// const debugRoutes = require('./routes/debug');
 
 const app = express();
 
@@ -23,11 +26,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// check for JWT on all routes
+app.use(authenticateJWT);
+
 // router routes
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-app.use('/todos', todoRoutes);
-app.use('/debug', debugRoutes);
+app.use('/users/:userId/lists', listRoutes);
+app.use('/users/:userId/lists/:listId/todos', todoRoutes);
+// app.use('/debug', debugRoutes);
 
 // so we don't get the "not found" error in our console for the favicon
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
@@ -36,7 +43,7 @@ app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 app.get('/', (req, res) => res.sendStatus(200));
 
 /** Handle 404 errors */
-// this will catch every request that doesn't match a route above and pass a NotFoundError to the next handler.
+// this will catch every request that doesn't match a route above and pass a NotFoundError to the next route handler.
 // adding a parameter to next() tells express that we want to call an error handler
 app.use(function (req, res, next) {
   // console.log('hit the 404 app.use()'.brightCyan);
@@ -57,7 +64,8 @@ app.use(function (err, req, res, next) {
   const status = err.status || 500;
   const message = err.message;
 
-  console.log('In generic error handler, status:'.red, status, 'message:'.red, message);
+  console.log('In generic error handler.'.red);
+  console.log('status: '.red, status, 'message: '.red, message);
 
   return res.status(status).json({ error: message });
 });

@@ -26,6 +26,8 @@ let testUserAccessToken;
 let testUserRefreshToken;
 let testTodoId;
 let invalidTodoId;
+let testUser2Id;
+let testUser2AccessToken;
 
 beforeAll(async () => {
   const db = await connectDB();
@@ -36,24 +38,25 @@ beforeAll(async () => {
 beforeEach(async () => {
   const hashedPassword = await bcrypt.hash('Password123!', BCRYPT_WORK_FACTOR);
 
-  const response = await usersCollection.insertOne({
+  // test user 1
+  const userOne = await usersCollection.insertOne({
     username: 'test',
     email: 'test@test.com',
     password: hashedPassword,
     createdAt: new Date(),
   });
 
-  testUserId = response.insertedId;
+  testUserId = userOne.insertedId;
   invalidId = testUserId.toString().slice(0, -2) + '00'; // change the last 2 chars to make it a valid format but non-existent id
 
   testUserAccessToken = jwt.sign(
-    { id: response.insertedId, username: 'test' },
+    { id: testUserId, username: 'test' },
     ACCESS_TOKEN_SECRET_KEY,
     { expiresIn: ACCESS_TOKEN_EXPIRY },
   );
 
   testUserRefreshToken = jwt.sign(
-    { id: response.insertedId },
+    { id: testUserId },
     REFRESH_TOKEN_SECRET_KEY,
     { expiresIn: REFRESH_TOKEN_EXPIRY },
   );
@@ -64,10 +67,26 @@ beforeEach(async () => {
     createdAt: new Date(),
     ownerId: testUserId.toString()
   });
-
   
   testTodoId = insertedId
   invalidTodoId = testTodoId.toString().slice(0, -2) + '00'; // change the last 2 chars to make it a valid format but non-existent id
+
+  // test user 2
+  const userTwo = await usersCollection.insertOne({
+    username: 'test2',
+    email: 'test2@test.com',
+    password: hashedPassword,
+    createdAt: new Date(),
+  });
+
+  testUser2Id = userTwo.insertedId;
+
+  testUser2AccessToken = jwt.sign(
+    { id: testUser2Id, username: 'test2' },
+    ACCESS_TOKEN_SECRET_KEY,
+    { expiresIn: ACCESS_TOKEN_EXPIRY },
+  );
+
 });
 
 afterEach(async () => {
@@ -201,6 +220,20 @@ describe('PATCH /todos/:id', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe('Invalid completed value');
   });
+
+  test('Returns a 401 if trying to update another users todo', async () => {
+    const response = await request(app)
+      .patch(`/todos/${testTodoId}`)
+      .set('Authorization', `Bearer ${testUser2AccessToken}`)
+      .send({
+        completed: 'true',
+      });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe(
+      'Unauthorized.  You are not authorized.',
+    );
+  });
 });
 
 /* DELETE /todos/:id */
@@ -220,6 +253,17 @@ describe('DELETE /todos/:id', () => {
     const response = await request(app).delete(`/todos/${invalidTodoId}`).set('Authorization', `Bearer ${testUserAccessToken}`);
 
     expect(response.statusCode).toBe(404);
+  });
+
+  test('Returns a 401 status if trying to delete another users todo', async () => {
+    const response = await request(app)
+      .delete(`/todos/${testTodoId}`)
+      .set('Authorization', `Bearer ${testUser2AccessToken}`);
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe(
+      'Unauthorized.  You are not authorized.',
+    );
   });
 });
 

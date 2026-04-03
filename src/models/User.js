@@ -5,11 +5,13 @@ const { ObjectId } = require('mongodb');
 const validator = require('validator');
 const { USERNAME_REGEX, PASSWORD_REGEX } = require('../utils/regex');
 
+
 function User(username, email, password) {
   this.username = username;
   this.email = email;
   this.password = password;
 };
+
 
 /* create a new user in the database */
 User.register = async function (username, email, password) {
@@ -54,7 +56,7 @@ User.register = async function (username, email, password) {
 
     // let the controller know if the email is already in use so it can return the appropriate error response
     if (user) {
-      return ({ userExists: true,  message: 'Email already exists' });
+      return { userExists: true,  message: 'Email already exists.' };
     }
 
     // if user with the same email does NOT exist, proceed to register the user
@@ -64,6 +66,7 @@ User.register = async function (username, email, password) {
       username,
       email,
       password: hashedPassword,
+      isAdmin: false, // default to false.  can only be set to true manually in the database for now
       createdAt: new Date(),
     });
 
@@ -75,12 +78,13 @@ User.register = async function (username, email, password) {
       }
     */
 
-    return { _id: response.insertedId, message: 'User registered successfully' };
+    return { _id: response.insertedId, message: 'User registered successfully.' };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
 };
+
 
 /* retrieve a user by email and validate credentials */
 User.login = async function (email, password) {
@@ -100,44 +104,67 @@ User.login = async function (email, password) {
 
     // user will be a user object if found, or null if not found
     if (!user) {
-      return { user, message: 'User not found' };
+      return { user: null, message: 'User not found.' };
     }
 
     const isValid = await User.verifyPassword(password, user.password);
 
     if (!isValid) {
-      return { user: null, message: 'Invalid password' };
+      return { user: null, message: 'Invalid password.' };
     }
 
     delete user.password; // remove password before returning the user object (for security reasons)
 
-    return { user, message: 'Login successful' };
+    return { user, message: 'Login successful.' };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
-};;
+};
+
 
 /* logout a logged in user */
-User.logout = async function() {
+User.logout = async function () {
   // Since JWTs are stateless, we can't invalidate them server-side, so no db actions.
-}
+};
+
+
+User.getAllUsers = async function () {
+  try {
+    const db = await connectDB(); // ✅ make sure connection is ready
+    const usersCollection = db.collection('users');
+    const usersCursor = await usersCollection.find({}, { projection: { password: 0 } }); // exclude password field
+    const users = await usersCursor.toArray();
+
+    return { users };
+  } catch (err) {
+    console.error('❌ Mongo error:', err);
+    throw err; // re-throw the error to be caught by the controller's try-catch
+  }
+};
+
 
 /* retrieve a user by id - does NOT return password */
 User.getUserById = async function (userId) {
   // cleanup
-  if (typeof userId !== 'string') { userId = ''; }
+  if (typeof userId !== 'string') {
+    return { error: 'Invalid user id.' };
+  }
+
   userId = userId.trim();
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { password: 0 } },
+    );
 
     // user will be a user object if found, or null if not found
 
-    if (user) {
-      delete user.password; // remove the password field before returning the user object (for security reasons)
+    if (!user) {
+      return { user: null, message: "User not found."}
     }
 
     return { user };
@@ -147,10 +174,12 @@ User.getUserById = async function (userId) {
   }
 };
 
+
 /* retrieve a user by email - does NOT return password */
 User.getUserByEmail = async function (email) {
   // cleanup
   if (typeof email !== 'string') { return { error: 'Invalid email address.' }; }
+
   email = email.trim().toLowerCase();
 
   // validate
@@ -161,12 +190,15 @@ User.getUserByEmail = async function (email) {
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ email });
+    const user = await usersCollection.findOne(
+      { email },
+      { projection: { password: 0 } },
+    );
 
     // user will be a user object if found, or null if not found
 
-    if (user) {
-      delete user.password; // remove the password field before returning the user object (for security reasons)
+    if (!user) {
+      return { user: null, message: 'User not found.' };
     }
 
     return { user };
@@ -174,7 +206,8 @@ User.getUserByEmail = async function (email) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
-};;
+};
+
 
 /* update a user in the database */
 User.updateUser = async function (userId, updatedFields) {
@@ -188,12 +221,12 @@ User.updateUser = async function (userId, updatedFields) {
 
   // if no fields left after cleaning, return error
   if (Object.keys(updatedFields).length === 0) { 
-    return { error: 'No valid fields provided for update' };
+    return { error: 'No updated data provided.' };
   }
 
   // cleanup userId
   if (typeof userId !== 'string') {
-    return { error: 'Invalid id' };
+    return { error: 'Invalid user id.' };
   }
   userId = userId.trim();
 
@@ -202,7 +235,7 @@ User.updateUser = async function (userId, updatedFields) {
   // if a username field is provided
   if (Object.keys(updatedFields).includes('username')) {
     if (typeof updatedFields.username !== 'string') {
-      return { error: 'Invalid username' };
+      return { error: 'Invalid username.' };
     }
 
     if (updatedFields.username === '') {
@@ -225,7 +258,7 @@ User.updateUser = async function (userId, updatedFields) {
   // if a password field is provided
   if (Object.keys(updatedFields).includes('password')) {
     if (typeof updatedFields.password !== 'string') {
-      return { error: 'Invalid password' };
+      return { error: 'Invalid password.' };
     }
 
     if (updatedFields.password === '') {
@@ -268,30 +301,30 @@ User.updateUser = async function (userId, updatedFields) {
      */
 
     if (!response.acknowledged) {
-      throw new Error('Failed to update user');
+      throw new Error('Failed to update user.');
     }
 
     if (response.matchedCount === 0) {
-      return { matchedCount: response.matchedCount, message: 'User not found' };
+      return { matchedCount: response.matchedCount, message: 'User not found.' };
     }
 
     if (response.modifiedCount === 0) {
       return {
         modifiedCount: response.modifiedCount,
-        message: 'No changes made to the user',
+        message: 'No changes made to the user.',
       };
     }
 
     return {
       modifiedCount: response.modifiedCount,
-      // updatedUser: {},
-      message: 'User updated successfully',
+      message: 'User updated successfully.',
     };
   } catch (err) {
     console.error('❌ Mongo error:', err);
     throw err; // re-throw the error to be caught by the controller's try-catch
   }
-};;
+};
+
 
 /* remove a user from the database */
 User.deleteUser = async function (userId) {
@@ -313,16 +346,16 @@ User.deleteUser = async function (userId) {
     */
 
     if (!response.acknowledged) {
-      throw new Error('Failed to delete user');
+      throw new Error('Failed to delete user.');
     }
 
     if (response.deletedCount === 0) {
-      return { deletedCount: response.deletedCount, message: 'User not found' };
+      return { deletedCount: response.deletedCount, message: 'User not found.' };
     }
 
     return {
       deletedCount: response.deletedCount,
-      message: 'User deleted successfully',
+      message: 'User deleted successfully.',
     };
   } catch (err) {
     console.error('❌ Mongo error:', err);
@@ -330,13 +363,16 @@ User.deleteUser = async function (userId) {
   }
 };
 
-User.hashPassword = async function(password) {
+
+User.hashPassword = async function (password) {
   const salt = await bcrypt.genSalt(BCRYPT_WORK_FACTOR);
   return await bcrypt.hash(password, salt);
-}
+};
+
 
 User.verifyPassword = async function (recievedPassword, storedPassword) {
   return await bcrypt.compare(recievedPassword, storedPassword);
 };
+
 
 module.exports = User;

@@ -1,11 +1,13 @@
 const Todo = require('../models/Todo');
+const { UnauthorizedError, ForbiddenError } = require('../utils/expressError');
 
-// auth middleware will have already verified the user's access token
 
 /* fetch all todos for the authenticated user */
-const getAllTodos = async (req, res, next) => {
+const getAllTodosByUser = async (req, res, next) => {
+  const userId = req.user.id;
+
   try {
-    const response = await Todo.getAllTodos(req.user.id); // pass the authenticated user's id to get only their todos
+    const response = await Todo.getAllTodosByUser(userId); // pass the authenticated user's id to get only their todos
 
     if (!response) {
       return res
@@ -27,17 +29,83 @@ const getAllTodos = async (req, res, next) => {
   }
 };
 
-/* add a new todo for the authenticated user */
-const addTodo = async (req, res, next) => {
+
+/* fetch all todos for the authenticated user's given list */
+const getAllTodosByList = async (req, res, next) => {
+  const listId = req.params.listId;
+
+  try {
+    const response = await Todo.getAllTodosByList(listId);
+
+    if (!response) {
+      return res
+        .status(500)
+        .json({ error: 'An error occured, please try again.' });
+    }
+
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+    
+    // successful response will be { todos: response } where response is an array of todo objects (can be empty if user has no todos)
+    const { todos } = response;
+
+    if (todos.length === 0) {
+      return res.status(404).json({ message: 'No todos found for this list' });
+    }
+
+    return res.status(200).json({ todos });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/* fetch a single todo by its id */
+const getSingleTodo = async (req, res, next) => {
+  const todoId = req.params.todoId;
+
+  try {
+    const response = await Todo.getTodoById(todoId);
+
+    if (!response) {
+      return res
+        .status(500)
+        .json({ error: 'An error occured, please try again.' });
+    }
+
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+    
+    // successful response will be { todo: response } where response is a single todo object
+    const { todo } = response;
+
+    if (!todo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    return res.status(200).json({ todo });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/* add a new todo for the authenticated user and list */
+const createTodo = async (req, res, next) => {
   if (!req.body || !req.body.task) {
     return res.status(400).json({ message: 'Task is required' });
   }
 
   const { task } = req.body;
-  const owner = req.user.id;
+  const listId = req.params.listId;
+  const ownerId = req.params.userId;
 
   try {
-    const response = await Todo.createTodo(task, owner);
+    const response = await Todo.createTodo(task, listId, ownerId);
 
     if (!response) {
       return res
@@ -58,33 +126,17 @@ const addTodo = async (req, res, next) => {
   }
 };
 
+
 /* update an existing todo for the authenticated user */
 const updateTodo = async (req, res, next) => {
-  if (!req.body || !(req.body.task || req.body.completed)) {
+  if (!req.body || !(req.body.task || req.body.completed || req.body.listId)) {
     return res.status(400).json({ message: 'Updated fields required' });
   }
 
-  const todoId = req.params.id;
+  const todoId = req.params.todoId;
   const updatedFields = req.body; // { task: "Updated title", completed: true }
 
-  // req.user will have the decode token payload, we should get the user by params,
-  // but check the id against the decoded token for authorization
-
-  const jwtUserId = req.user.id;
-
   try {
-    const { todo } = await Todo.getTodoById(todoId);
-    
-    if (!todo) {
-      return res.status(404).json({ message: 'Todo not found' });
-    }
-
-    if (jwtUserId !== todo.ownerId) {
-      return res
-        .status(403)
-        .json({ message: 'Forbidden.  You are not authorized.' });
-    }
-
     const response = await Todo.updateTodo(todoId, updatedFields);
 
     if (!response) {
@@ -112,31 +164,14 @@ const updateTodo = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};;
+};
+
 
 /* delete an existing todo for the authenticated user */
 const deleteTodo = async (req, res, next) => {
-  const todoId = req.params.id;
-
-  // req.user will have the decode token payload, we should get the user by params,
-  // but check the id against the decoded token for authorization
-
-  const jwtUserId = req.user.id;
+  const todoId = req.params.todoId;
 
   try {
-    // make sure the todo exists and belongs to the authenticated user before trying to delete
-    const { todo } = await Todo.getTodoById(todoId);
-
-    if (!todo) {
-      return res.status(404).json({ message: 'Todo not found' });
-    }
-
-    if (jwtUserId !== todo.ownerId) {
-      return res
-        .status(403)
-        .json({ message: 'Forbidden.  You are not authorized.' });
-    }
-
     const response = await Todo.deleteTodo(todoId);
 
     if (!response) {
@@ -162,8 +197,10 @@ const deleteTodo = async (req, res, next) => {
 };;
 
 module.exports = {
-  getAllTodos,
-  addTodo,
+  getAllTodosByUser,
+  getAllTodosByList,
+  getSingleTodo,
+  createTodo,
   updateTodo,
   deleteTodo,
 };

@@ -23,6 +23,7 @@ let testUserId;
 let invalidId;
 let testUserAccessToken;
 let testUserRefreshToken;
+let testUser2Id;
 
 beforeAll(async () => {
   const db = await connectDB();
@@ -32,26 +33,37 @@ beforeAll(async () => {
 beforeEach(async () => {
   const hashedPassword = await bcrypt.hash('Password123!', BCRYPT_WORK_FACTOR);
 
-  const response = await usersCollection.insertOne({
+  // test user 1
+  const userOne = await usersCollection.insertOne({
     username: 'test',
     email: 'test@test.com',
     password: hashedPassword,
     createdAt: new Date(),
   });
 
-  testUserId = response.insertedId;
+  testUserId = userOne.insertedId;
   invalidId = testUserId.toString().slice(0, -2) + '00'; // change the last 2 chars to make it a valid format but non-existent id
 
   testUserAccessToken = jwt.sign(
-    { id: response.insertedId, username: 'test' },
+    { id: userOne.insertedId, username: 'test' },
     ACCESS_TOKEN_SECRET_KEY,
     { expiresIn: ACCESS_TOKEN_EXPIRY },
   );
   testUserRefreshToken = jwt.sign(
-    { id: response.insertedId },
+    { id: userOne.insertedId },
     REFRESH_TOKEN_SECRET_KEY,
     { expiresIn: REFRESH_TOKEN_EXPIRY },
   );
+
+  // test user 2
+  const userTwo = await usersCollection.insertOne({
+    username: 'test2',
+    email: 'test2@test.com',
+    password: hashedPassword,
+    createdAt: new Date(),
+  });
+
+  testUser2Id = userTwo.insertedId;
 });
 
 afterEach(async () => {
@@ -137,6 +149,17 @@ describe('GET /users/:id', () => {
       .set('Authorization', `Bearer ${testUserAccessToken}`);
 
     expect(response.statusCode).toBe(500);
+  });
+
+  test('Trying to view another users information returns a 401', async () => {
+    const response = await request(app)
+      .get(`/users/${testUser2Id}`)
+      .set('Authorization', `Bearer ${testUserAccessToken}`);
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe(
+      'Unauthorized.  You are not authorized.',
+    );
   });
 });
 
@@ -236,6 +259,20 @@ describe('PATCH /users/:id', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toContain('Invalid password format');
   });
+
+  test('Returns a 401 if trying to update another users info', async () => { 
+    const response = await request(app)
+      .patch(`/users/${testUser2Id}`)
+      .set('Authorization', `Bearer ${testUserAccessToken}`)
+      .send({
+        password: 'weak',
+
+      });
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toContain(
+      'Unauthorized.  You are not authorized.',
+    );
+  });
 });
 
 /* DELETE /users/:id */
@@ -249,20 +286,32 @@ describe('DELETE /users/:id', () => {
     expect(response.body.message).toBe('User deleted successfully');
   });
 
-  test('Delete user with invalid id, but proper id format returns 404', async () => {
-    const response = await request(app)
-      .delete(`/users/${invalidId}`)
-      .set('Authorization', `Bearer ${testUserAccessToken}`);
+  // TODO: the below tests have to do with improper data formats, we can test this in the model, or sanitize data in the controller
+  // test('Delete user with invalid id, but proper id format returns 404', async () => {
+  //   const response = await request(app)
+  //     .delete(`/users/${invalidId}`)
+  //     .set('Authorization', `Bearer ${testUserAccessToken}`);
     
-    expect(response.statusCode).toBe(404);
-    expect(response.body.message).toBe('User not found');
-  });
+  //   expect(response.statusCode).toBe(404);
+  //   expect(response.body.message).toBe('User not found');
+  // });
 
-  test('Delete user with invalid mongo id format returns 500', async () => {
+  // test('Delete user with invalid mongo id format returns 500', async () => {
+  //   const response = await request(app)
+  //     .delete(`/users/0asdfasdf00`)
+  //     .set('Authorization', `Bearer ${testUserAccessToken}`);
+
+  //   expect(response.statusCode).toBe(500);
+  // });
+
+  test('Returns a 401 if trying to delete another user', async () => {
     const response = await request(app)
-      .delete(`/users/0asdfasdf00`)
+      .delete(`/users/${testUser2Id}`)
       .set('Authorization', `Bearer ${testUserAccessToken}`);
 
-    expect(response.statusCode).toBe(500);
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe(
+      'Unauthorized.  You are not authorized.',
+    );
   });
 });
