@@ -7,7 +7,7 @@ const router = express.Router({ mergeParams: true });
 router.use(requireLoggedIn);
 router.use(requireCorrectUser); // checks that the jwt payload matches the userId in the route params.
 
-router.get('/', listsController.getAllLists);
+router.get('/', listsController.getAllListsByUser);
 router.get('/:listId', listsController.getSingleList);
 router.post('/', listsController.createList);
 router.patch('/:listId', listsController.updateList,);

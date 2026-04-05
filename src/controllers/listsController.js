@@ -1,10 +1,8 @@
 const List = require('../models/List');
-const Todo = require('../models/Todo');
-const { UnauthorizedError, ForbiddenError } = require('../utils/expressError');
 
 
 /* fetch all lists for the authenticated user.  auth middleware checks for correct user. */
-const getAllLists = async (req, res, next) => {
+const getAllListsByUser = async (req, res, next) => {
   const userId = req.params.userId
 
   try {
@@ -16,11 +14,19 @@ const getAllLists = async (req, res, next) => {
         .json({ error: 'An error occured, please try again.' });
     }
 
-    if (response.lists.length === 0) {
-      return res.status(404).json({ message: 'No lists found.' });
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
     }
-    
-    res.status(200).json({ lists: response.lists });
+
+    // successful response will be { response: [lists] } where response is an array of list objects (can be empty if user has no lists)
+    const { lists } = response;
+
+    // if (lists.length === 0) {
+    //   return res.status(404).json({ message: 'No lists found.' });
+    // }
+
+    return res.status(200).json({ lists });
   } catch (error) {
     next(error); // Pass the error to the error handler middleware
   }
@@ -32,7 +38,7 @@ const getSingleList = async (req, res, next) => {
   const listId = req.params.listId
 
   try {
-    const response = await List.getSingleList(listId, userId)
+    const response = await List.getSingleList(listId, userId);
 
     if (!response) {
       return res
@@ -40,11 +46,17 @@ const getSingleList = async (req, res, next) => {
         .json({ error: 'An error occured, please try again.' });
     }
 
+    // errors in data - model returns an error: error message
+    if (response.error) {
+      return res.status(400).json({ message: response.error });
+    }
+
+    // successful response will be { response: list } where response is a single list object
+    const { list } = response;
+    
     if (!response.list) {
       return res.status(404).json({ message: 'List not found.' });
     }
-
-    const { list } = response;
 
     return res.status(200).json({ list });
   } catch (error) {
@@ -76,7 +88,7 @@ const createList = async (req, res, next) => {
       return res.status(400).json({ message: response.error });
     }
 
-    // successful response will be { response, newList: { _id: response.insertedId, title, dateAdded, ownerId }, message: 'Todo created successfully' };
+    // successful response will be { response, newList: { _id: response.insertedId, title, dateAdded, ownerId }, message: 'List created successfully' };
     const { newList, message } = response;
 
     return res.status(201).json({ newList, message });
@@ -118,7 +130,7 @@ const updateList = async (req, res, next) => {
       return res.status(400).json({ message: response.message });
     }
 
-    // successful response will be { modifiedCount: response.modifiedCount, updatedTodo: {}, message: 'Todo updated successfully' }
+    // successful response will be { modifiedCount: response.modifiedCount, updatedList: {}, message: 'List updated successfully' }
     const { message } = response;
 
     return res.status(200).json({ message });
@@ -159,7 +171,7 @@ const deleteList = async (req, res, next) => {
 };
 
 module.exports = {
-  getAllLists,
+  getAllListsByUser,
   getSingleList,
   createList,
   updateList,

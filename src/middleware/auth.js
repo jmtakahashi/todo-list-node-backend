@@ -11,8 +11,16 @@ const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization || req.headers.Authorization;
 
     if (authHeader) {
+      if (!authHeader.startsWith('Bearer ')) {
+        // console.error('In authenticateJWT error:'.red, 'Invalid Authorization header format.');
+        // const e = new UnauthorizedError('Invalid Authorization header format. Expected "Bearer <token>".');
+        return next(); // do not throw an error and continue.  subsequent middleware will run checks for authorization
+      }
+
       const accessToken = authHeader.split(' ')[1]; // extract token from Authorization header
+
       const { id, username, isAdmin } = jwt.verify(accessToken, ACCESS_TOKEN_SECRET_KEY); // this will throw an error if the token is invalid or expired
+      
       req.user = { id, username, isAdmin };
     }
 
