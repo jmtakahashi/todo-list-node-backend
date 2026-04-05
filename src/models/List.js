@@ -75,6 +75,13 @@ List.createList = async function (title, ownerId) {
     const db = await connectDB();
     const listsCollection = db.collection('lists');
 
+    // check if user already has a list with the same title
+    const existingList = await listsCollection.findOne({ title, ownerId });
+
+    if (existingList) {
+      return { listExists: true, message: 'A list with the same name already exists. Please choose a different name.' };
+    }
+
     const newList = {
       title: title,
       createdAt: new Date(),
@@ -109,7 +116,7 @@ List.createList = async function (title, ownerId) {
 
 
 /* UPDATE a list for the authorized user */
-List.updateList = async function (listId, ownerId,updatedFields) {
+List.updateList = async function (listId, ownerId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['title'];
   Object.keys(updatedFields).forEach((key) => {
@@ -137,6 +144,17 @@ List.updateList = async function (listId, ownerId,updatedFields) {
   try {
     const db = await connectDB();
     const listsCollection = db.collection('lists');
+
+    // check if user already has a list with the same title
+    const existingList = await listsCollection.findOne({ title: updatedFields.title, ownerId });
+
+    if (existingList) {
+      return {
+        listExists: true,
+        message:
+          'A list with the same name already exists. Please choose a different name.',
+      };
+    }
 
     const response = await listsCollection.updateOne(
       { _id: new ObjectId(listId), ownerId },

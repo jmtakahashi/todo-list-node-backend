@@ -20,7 +20,7 @@ const registerUser = async function (req, res, next) {
         .json({ error: 'An error occured, please try again.' });
     }
 
-    // user already exists with the same email, return an error
+    // user already exists with the same email
     if (response.userExists) {
        return res.status(409).json({ message: 'Email already exists.' });
     }

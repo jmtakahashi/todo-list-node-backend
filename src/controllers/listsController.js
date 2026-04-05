@@ -83,6 +83,11 @@ const createList = async (req, res, next) => {
         .json({ error: 'An error occured, please try again.' });
     }
 
+    // list already exists with the same title
+    if (response.listExists) {
+      return res.status(409).json({ message: response.message });
+    }
+
     // errors in data - model returns an error: error message
     if (response.error) {
       return res.status(400).json({ message: response.error });
@@ -120,6 +125,11 @@ const updateList = async (req, res, next) => {
     // errors in data
     if (response.error) {
       return res.status(400).json({ message: response.error });
+    }
+
+    // list already exists with the same title
+    if (response.listExists) {
+      return res.status(409).json({ message: response.message });
     }
 
     if (response.matchedCount === 0) {
