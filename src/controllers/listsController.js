@@ -6,7 +6,7 @@ const getAllListsByUser = async (req, res, next) => {
   const userId = req.params.userId
 
   try {
-    const response = await List.getAllLists(userId);
+    const response = await List.getAllListsByUser(userId);
 
     if (!response) {
       return res
