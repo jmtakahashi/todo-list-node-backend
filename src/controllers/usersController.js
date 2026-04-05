@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const { UnauthorizedError, ForbiddenError } = require('../utils/expressError');
 
 
 /* fetch all users.  admin only function.  auth middleware checks for admin privileges. */

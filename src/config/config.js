@@ -29,13 +29,14 @@ const BCRYPT_WORK_FACTOR = process.env.NODE_ENV === "test" ? 1 : 12;
 
 // only log the config when not in test mode, to avoid cluttering test output with config logs
 if (process.env.NODE_ENV !== "test") { 
-  console.log('\nTodo List Config:'.brightCyan);
+  console.log('\n----- Todo List Config -----'.brightCyan);
   console.log('ACCESS_TOKEN_SECRET_KEY:'.yellow, ACCESS_TOKEN_SECRET_KEY);
   console.log('PORT:'.yellow, PORT.toString());
   console.log('BCRYPT_WORK_FACTOR:'.yellow, BCRYPT_WORK_FACTOR);
   console.log('MonogoDB URI:'.yellow, getDatabaseUri());
   console.log('NODE_ENV:'.yellow, process.env.NODE_ENV);
   console.log('process.env'.yellow, process.env);
+  console.log('----------------------------\n'.brightCyan);
 }
 
 module.exports = {

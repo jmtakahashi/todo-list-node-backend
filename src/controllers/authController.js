@@ -158,6 +158,7 @@ const refreshAccessToken = async function (req, res, next) {
 };
 
 
+/* check if an email already exists in the database */
 // this endpoint is used during the register process
 const checkExistingUser = async function (req, res, next) {
   if ( !req.body || !req.body.email) {

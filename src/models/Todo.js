@@ -140,7 +140,7 @@ Todo.createTodo = async function (task, listId, ownerId) {
 
 
 /* UPDATE a todo in the database */
-Todo.updateTodo = async function (todoId, ownerId, updatedFields) {
+Todo.updateTodo = async function (todoId, ownerId, listId, updatedFields) {
   // sanitize input by only allowing certain fields to be updated
   const allowedFields = ['task', 'completed', 'listId'];
   Object.keys(updatedFields).forEach((key) => {
@@ -187,6 +187,8 @@ Todo.updateTodo = async function (todoId, ownerId, updatedFields) {
     updatedFields.listId = updatedFields.listId.trim();
 
     fieldsToUpdate['listId'] = updatedFields.listId;
+  } else {
+    fieldsToUpdate['listId'] = listId;
   }
 
   const dateUpdated = new Date();
@@ -253,21 +255,25 @@ Todo.updateTodo = async function (todoId, ownerId, updatedFields) {
 
 
 /* DELETE a todo from the database */
-Todo.deleteTodo = async function (todoId, ownerId) {
+Todo.deleteTodo = async function (todoId, ownerId, listId) {
   if (typeof todoId !== 'string') {
     todoId = '';
   }
   if (typeof ownerId !== 'string') {
     ownerId = '';
   }
+  if (typeof listId !== 'string') {
+    listId = '';
+  }
 
   todoId = todoId.trim();
   ownerId = ownerId.trim();
+  listId = listId.trim();
 
   try {
     const db = await connectDB(); // ✅ make sure connection is ready
     const todosCollection = db.collection('todos');
-    const response = await todosCollection.deleteOne({ _id: new ObjectId(todoId), ownerId });
+    const response = await todosCollection.deleteOne({ _id: new ObjectId(todoId), ownerId, listId });
 
     /*
       - throws an error if invalid id format is provided

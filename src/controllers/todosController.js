@@ -1,5 +1,4 @@
 const Todo = require('../models/Todo');
-const { UnauthorizedError, ForbiddenError } = require('../utils/expressError');
 
 
 /* fetch all todos for the authenticated user.  auth middleware checks for correct user. */
@@ -52,12 +51,12 @@ const getAllTodosByList = async (req, res, next) => {
       return res.status(400).json({ message: response.error });
     }
     
-    // successful response will be { todos: response } where response is an array of todo objects (can be empty if user has no todos)
+    // successful response will be { response: [todos] } where response is an array of todo objects (can be empty if user has no todos)
     const { todos } = response;
 
-    if (todos.length === 0) {
-      return res.status(404).json({ message: 'No todos found for this list.' });
-    }
+    // if (todos.length === 0) {
+    //   return res.status(404).json({ message: 'No todos found for this list.' });
+    // }
 
     return res.status(200).json({ todos });
   } catch (error) {
@@ -88,7 +87,7 @@ const getSingleTodo = async (req, res, next) => {
       return res.status(400).json({ message: response.error });
     }
 
-    // successful response will be { todo: response } where response is a single todo object
+    // successful response will be { response: todo } where response is a single todo object
     const { todo } = response;
 
     if (!todo) {
@@ -145,6 +144,7 @@ const updateTodo = async (req, res, next) => {
   }
 
   const userId = req.params.userId;
+  const listId = req.params.listId; // we need the listId to check that the todo belongs to the user and also to check that the new listId (if provided) belongs to the user
   const todoId = req.params.todoId;
   const updatedFields = req.body; // { task: "Updated title", completed: true }
 
@@ -152,7 +152,7 @@ const updateTodo = async (req, res, next) => {
   // if a listId is provided in the updatedFields, the model will check that the list belongs to the user as well
 
   try {
-    const response = await Todo.updateTodo(todoId, userId, updatedFields);
+    const response = await Todo.updateTodo(todoId, userId, listId, updatedFields);
 
     if (!response) {
       return res
@@ -185,12 +185,13 @@ const updateTodo = async (req, res, next) => {
 /* delete an existing todo for the authenticated user */
 const deleteTodo = async (req, res, next) => {
   const userId = req.params.userId;
+  const listId = req.params.listId;
   const todoId = req.params.todoId;
 
   // check that todo is owned by the userId in the params is done in the model
 
   try {
-    const response = await Todo.deleteTodo(todoId, userId);
+    const response = await Todo.deleteTodo(todoId, userId, listId);
 
     if (!response) {
       return res

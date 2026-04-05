@@ -9,7 +9,7 @@ function List(title, createdAt, updatedAt, ownerId) {
 }
 
 /* GET all lists for a specific user from the db */
-List.getAllLists = async function (ownerId) {
+List.getAllListsByUser = async function (ownerId) {
   if (typeof ownerId !== 'string') {
     ownerId = '';
   }
